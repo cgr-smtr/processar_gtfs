@@ -307,6 +307,9 @@ if __name__ == "__main__":
             except Exception as e:
                 print(f"Failed opening {f}: {e}")
                 
+        # Define the subset of columns to keep globally for SPPO and Frescões
+        cols_to_keep = ['servico', 'direction_id', 'datetime_partida', 'datetime_chegada', 'distancia_planejada', 'data']
+
         if len(bases) > 0:
             trips = pd.concat(bases, ignore_index=True)
             if 'servico_informado' in trips.columns:
@@ -319,8 +322,6 @@ if __name__ == "__main__":
                     return np.nan
                 trips['direction_id'] = trips['sentido'].apply(map_sentido)
             
-            # Keep only required columns that exist
-            cols_to_keep = ['servico', 'direction_id', 'datetime_partida', 'datetime_chegada', 'distancia_planejada', 'data']
             trips = trips[[c for c in cols_to_keep if c in trips.columns]]
             
             if 'distancia_planejada' in trips.columns:

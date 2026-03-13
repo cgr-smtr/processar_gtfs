@@ -146,6 +146,50 @@ def substituir_arquivos_gtfs(caminho_zip, pasta_origem, arquivos=["calendar_date
     os.replace(caminho_temp, caminho_zip)
     log_msg(f"  ✓ Arquivo {os.path.basename(caminho_zip)} recriado com sucesso")
 
+def clean_gtfs(gtfs_dict):
+    """Filters all associated tables based on the currently existing trips, mimicking gtfstools::filter_by_trip_id"""
+    if 'trips' not in gtfs_dict or gtfs_dict['trips'].empty:
+        return gtfs_dict
+        
+    valid_trips = set(gtfs_dict['trips']['trip_id'])
+    
+    if 'stop_times' in gtfs_dict and not gtfs_dict['stop_times'].empty:
+        gtfs_dict['stop_times'] = gtfs_dict['stop_times'][gtfs_dict['stop_times']['trip_id'].isin(valid_trips)]
+        
+    if 'frequencies' in gtfs_dict and not gtfs_dict['frequencies'].empty:
+        gtfs_dict['frequencies'] = gtfs_dict['frequencies'][gtfs_dict['frequencies']['trip_id'].isin(valid_trips)]
+        
+    valid_routes = set(gtfs_dict['trips']['route_id'])
+    if 'routes' in gtfs_dict and not gtfs_dict['routes'].empty:
+        gtfs_dict['routes'] = gtfs_dict['routes'][gtfs_dict['routes']['route_id'].isin(valid_routes)]
+        
+    if 'shapes' in gtfs_dict and not gtfs_dict['shapes'].empty and 'shape_id' in gtfs_dict['trips'].columns:
+        valid_shapes = set(gtfs_dict['trips']['shape_id'].dropna())
+        gtfs_dict['shapes'] = gtfs_dict['shapes'][gtfs_dict['shapes']['shape_id'].isin(valid_shapes)]
+        
+    if 'stop_times' in gtfs_dict and not gtfs_dict['stop_times'].empty:
+        valid_stops = set(gtfs_dict['stop_times']['stop_id'])
+        if 'stops' in gtfs_dict and not gtfs_dict['stops'].empty:
+            df_stops = gtfs_dict['stops']
+            child_stops = df_stops[df_stops['stop_id'].isin(valid_stops)]
+            if 'parent_station' in child_stops.columns:
+                parents = set(child_stops['parent_station'].replace("", np.nan).dropna())
+                valid_stops.update(parents)
+            gtfs_dict['stops'] = df_stops[df_stops['stop_id'].isin(valid_stops)]
+            
+    valid_services = set(gtfs_dict['trips']['service_id'].dropna())
+    if 'calendar' in gtfs_dict and not gtfs_dict['calendar'].empty:
+        gtfs_dict['calendar'] = gtfs_dict['calendar'][gtfs_dict['calendar']['service_id'].isin(valid_services)]
+        
+    if 'calendar_dates' in gtfs_dict and not gtfs_dict['calendar_dates'].empty:
+        gtfs_dict['calendar_dates'] = gtfs_dict['calendar_dates'][gtfs_dict['calendar_dates']['service_id'].isin(valid_services)]
+        
+    valid_agencies = set(gtfs_dict['routes']['agency_id'].dropna()) if 'agency_id' in gtfs_dict['routes'].columns else set()
+    if valid_agencies and 'agency' in gtfs_dict and not gtfs_dict['agency'].empty and 'agency_id' in gtfs_dict['agency'].columns:
+        gtfs_dict['agency'] = gtfs_dict['agency'][gtfs_dict['agency']['agency_id'].isin(valid_agencies)]
+        
+    return gtfs_dict
+
 # ==============================================================================
 # PROCESSAMENTO PRINCIPAL
 # ==============================================================================
@@ -197,9 +241,8 @@ trips_final_sppo = set(trips_manter) - set(trips_fantasma)
 
 # Filter trips
 gtfs_sppo['trips'] = gtfs_sppo['trips'][gtfs_sppo['trips']['trip_id'].isin(trips_final_sppo)]
-# For a full filter like filter_by_trip_id we'd cascade this to stop_times, etc, but typically maintaining trips is enough before merge, 
-# although we should filter stop_times as well
-gtfs_sppo['stop_times'] = gtfs_sppo['stop_times'][gtfs_sppo['stop_times']['trip_id'].isin(trips_final_sppo)]
+# Call clean_gtfs to cascade removal of unused stop_times, routes, shapes, etc
+gtfs_sppo = clean_gtfs(gtfs_sppo)
 
 log_msg(f"✓ SPPO processado — {len(gtfs_sppo['routes'])} rotas, {len(gtfs_sppo['trips'])} trips")
 
@@ -229,6 +272,8 @@ stops_vazios_brt = df_st_brt[mask_vazios_brt]
 if not stops_vazios_brt.empty:
     log_msg(f"⚠️  BRT tem {len(stops_vazios_brt)} stops com horários vazios!")
     raise ValueError("⛔ BRT processado está com horários vazios.")
+
+gtfs_brt = clean_gtfs(gtfs_brt)
 
 log_msg(f"✓ BRT processado — {len(gtfs_brt['routes'])} rotas, {len(gtfs_brt['trips'])} trips")
 write_gtfs(gtfs_brt, endereco_brt)
@@ -320,6 +365,9 @@ if not df_st_final.empty:
         raise ValueError("⛔ ERRO: GTFS combinado tem stops com horários vazios!")
 log_msg(f"✓ Todos os {len(df_st_final)} stops têm horários válidos")
 
+# Cleanup final combi to guarantee no orphaned records due to explicit point deletions
+gtfs_combi = clean_gtfs(gtfs_combi)
+
 # ==============================================================================
 # 5. SALVAMENTO GTFS COMBI e SUBSTITUIÇÃO
 # ==============================================================================
@@ -348,9 +396,8 @@ if 'trips' in gtfs_pub:
     trips_excep = trips_pub[trips_pub['service_id'] == "EXCEP"]['trip_id'].unique()
     gtfs_pub['trips'] = trips_pub[trips_pub['service_id'] != "EXCEP"]
     
-    # cascade remove from stop_times 
-    if 'stop_times' in gtfs_pub:
-        gtfs_pub['stop_times'] = gtfs_pub['stop_times'][~gtfs_pub['stop_times']['trip_id'].isin(trips_excep)]
+    # Clean up downstream associations
+    gtfs_pub = clean_gtfs(gtfs_pub)
 
 log_msg("Aplicando cores personalizadas às rotas...")
 gtfs_pub = atualizar_cores_gtfs(gtfs_pub, "../../dados/insumos/gtfs_cores.csv")
