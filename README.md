@@ -4,5 +4,5 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-Projeto utilizado para processar os GTFS baixados do editor.
+Projeto utilizado para processar o GTFS baixados do editor.
 
