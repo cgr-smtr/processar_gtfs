@@ -255,8 +255,9 @@ gtfs_brt = read_gtfs(endereco_brt)
 log_msg("Processando BRT...")
 
 df_rb = gtfs_brt['routes']
-df_rb['route_type'] = '702'
-df_rb.loc[df_rb['route_id'].str.contains("EXEC", na=False), 'route_type'] = '200'
+# Preserva o route_type original do GTFS BRT
+if 'route_type' not in df_rb.columns:
+    df_rb['route_type'] = np.nan
 
 routes_usar_brt = gtfs_brt['trips']['trip_short_name'].unique()
 gtfs_brt['routes'] = gtfs_brt['routes'][gtfs_brt['routes']['route_short_name'].isin(routes_usar_brt)]

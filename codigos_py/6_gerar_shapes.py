@@ -219,6 +219,20 @@ if not df_stops.empty and not df_stop_times.empty:
     print("Gerando vetores dos pontos de parada...")
     pontos_usados = df_stop_times['stop_id'].unique()
     gtfs_stops_filt = df_stops[df_stops['stop_id'].isin(pontos_usados)].copy()
+
+    # route_type por parada: agrega todos os tipos de rota das viagens que passam no ponto
+    stop_route_types = (
+        df_stop_times[['trip_id', 'stop_id']]
+        .merge(df_trips[['trip_id', 'route_id']], on='trip_id', how='left')
+        .merge(df_routes[['route_id', 'route_type']], on='route_id', how='left')
+    )
+    stop_route_types = (
+        stop_route_types.dropna(subset=['stop_id', 'route_type'])
+        .groupby('stop_id')['route_type']
+        .apply(lambda s: ','.join(sorted(set(s.astype(str)))))
+        .reset_index(name='route_type')
+    )
+    gtfs_stops_filt = gtfs_stops_filt.merge(stop_route_types, on='stop_id', how='left')
     
     gtfs_stops_filt['stop_lon'] = pd.to_numeric(gtfs_stops_filt['stop_lon'], errors='coerce')
     gtfs_stops_filt['stop_lat'] = pd.to_numeric(gtfs_stops_filt['stop_lat'], errors='coerce')
