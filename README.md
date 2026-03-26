@@ -59,6 +59,3 @@ Depende de pacotes como:
 1.  Certifique-se de que os dados de entrada (GTFS e arquivos de GPS) estão nas pastas corretas conforme definido nos parâmetros iniciais dos scripts.
 2.  Execute os scripts na ordem numérica (1 a 7).
 3.  Os arquivos GTFS finais serão gerados na pasta `../dados/gtfs/` com os sufixos `_PROC.zip` ou `_pub.zip`.
-
----
-*Este projeto é parte integrante do sistema de monitoramento de transportes da cidade do Rio de Janeiro.*
