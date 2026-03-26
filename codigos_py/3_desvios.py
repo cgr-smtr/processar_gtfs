@@ -14,11 +14,13 @@ warnings.filterwarnings('ignore', category=pd.errors.DtypeWarning)
 # ==============================================================================
 # CONFIGURATIONS
 # ==============================================================================
+BASE_DADOS = Path("C:/R_SMTR/dados")
+
 ano_gtfs = "2026"  # Changed to 2026 as per the previous script testing
 mes_gtfs = "03"
 quinzena_gtfs = "04"
 
-endereco_gtfs = f"../../dados/gtfs/{ano_gtfs}/sppo_{ano_gtfs}-{mes_gtfs}-{quinzena_gtfs}Q_PROC.zip"
+endereco_gtfs = BASE_DADOS / f"gtfs/{ano_gtfs}/sppo_{ano_gtfs}-{mes_gtfs}-{quinzena_gtfs}Q_PROC.zip"
 
 desvios_tabela_id = "1QYSf_E7HrDcSDVVaF_KrolS-LRL3kTF5WnhQGh3RMy0"
 
@@ -244,7 +246,7 @@ gtfs_data['trips'] = df_trips
 if not df_calendar.empty: gtfs_data['calendar'] = df_calendar
 if not df_calendar_dates.empty: gtfs_data['calendar_dates'] = df_calendar_dates
 
-endereco_temp = endereco_gtfs.replace('.zip', '_TEMP.zip')
+endereco_temp = endereco_gtfs.with_name(endereco_gtfs.name.replace('.zip', '_TEMP.zip'))
 
 with zipfile.ZipFile(endereco_gtfs, 'r') as zin, zipfile.ZipFile(endereco_temp, 'w', compression=zipfile.ZIP_DEFLATED) as zout:
     for item in zin.infolist():

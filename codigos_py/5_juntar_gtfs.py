@@ -12,17 +12,19 @@ warnings.filterwarnings('ignore', category=pd.errors.DtypeWarning)
 # ==============================================================================
 # CONFIGURAÇÕES
 # ==============================================================================
+BASE_DADOS = Path("C:/R_SMTR/dados")
+
 ano_gtfs      = "2026"
 mes_gtfs      = "03"
 quinzena_gtfs = "05"
 sufixo        = f"{ano_gtfs}-{mes_gtfs}-{quinzena_gtfs}Q"
 
-endereco_sppo       = f"../../dados/gtfs/{ano_gtfs}/sppo_{sufixo}_PROC.zip"
-endereco_brt        = f"../../dados/gtfs/{ano_gtfs}/brt_{sufixo}_PROC.zip"
-endereco_gtfs_combi = f"../../dados/gtfs/{ano_gtfs}/gtfs_combi_{sufixo}.zip"
+endereco_sppo       = BASE_DADOS / f"gtfs/{ano_gtfs}/sppo_{sufixo}_PROC.zip"
+endereco_brt        = BASE_DADOS / f"gtfs/{ano_gtfs}/brt_{sufixo}_PROC.zip"
+endereco_gtfs_combi = BASE_DADOS / f"gtfs/{ano_gtfs}/gtfs_combi_{sufixo}.zip"
 
-pasta_substituicao_combi = "../../dados/insumos/gtfs_combi"
-pasta_substituicao_pub   = "../../dados/insumos/gtfs_pub"
+pasta_substituicao_combi = BASE_DADOS / "insumos/gtfs_combi"
+pasta_substituicao_pub   = BASE_DADOS / "insumos/gtfs_pub"
 
 # ==============================================================================
 # FUNÇÕES AUXILIARES
@@ -138,7 +140,7 @@ def substituir_arquivos_gtfs(caminho_zip, pasta_origem, arquivos=["calendar_date
             log_msg(f"  ⚠ Arquivo {arq} não encontrado na origem, mantido o original")
             
     # Write back
-    caminho_temp = caminho_zip.replace('.zip', '_TEMP.zip')
+    caminho_temp = caminho_zip.with_name(caminho_zip.name.replace('.zip', '_TEMP.zip'))
     with zipfile.ZipFile(caminho_temp, 'w', compression=zipfile.ZIP_DEFLATED) as zout:
         for fname, content in zin_data.items():
             zout.writestr(fname, content)
@@ -231,7 +233,7 @@ trips_com_st = df_st_sppo['trip_id'].unique()
 trips_excep = gtfs_sppo['trips'][gtfs_sppo['trips']['service_id'] == "EXCEP"]['trip_id'].unique()
 trips_manter = np.unique(np.concatenate([trips_com_st, trips_excep]))
 
-path_fantasmas = "../../dados/insumos/trip_id_fantasma.txt"
+path_fantasmas = BASE_DADOS / "insumos/trip_id_fantasma.txt"
 if os.path.exists(path_fantasmas):
     trips_fantasma = pd.read_csv(path_fantasmas, header=None).iloc[:, 0].tolist()
 else:
@@ -401,10 +403,10 @@ if 'trips' in gtfs_pub:
     gtfs_pub = clean_gtfs(gtfs_pub)
 
 log_msg("Aplicando cores personalizadas às rotas...")
-gtfs_pub = atualizar_cores_gtfs(gtfs_pub, "../../dados/insumos/gtfs_cores.csv")
+gtfs_pub = atualizar_cores_gtfs(gtfs_pub, BASE_DADOS / "insumos/gtfs_cores.csv")
 
 log_msg("Salvando GTFS público final...")
-caminho_gtfs_pub = f"../../dados/gtfs/{ano_gtfs}/gtfs_rio-de-janeiro_pub.zip"
+caminho_gtfs_pub = BASE_DADOS / f"gtfs/{ano_gtfs}/gtfs_rio-de-janeiro_pub.zip"
 write_gtfs(gtfs_pub, caminho_gtfs_pub)
 
 substituir_arquivos_gtfs(caminho_gtfs_pub, pasta_substituicao_pub)

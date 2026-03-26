@@ -5,20 +5,23 @@ import os
 import time
 import geopandas as gpd
 from shapely.geometry import LineString
+from pathlib import Path
 
 # ============================================================================
 # CONFIGURAÇÕES INICIAIS
 # ============================================================================
+BASE_DADOS = Path("C:/R_SMTR/dados")
+BASE_RESULTADOS = Path("C:/R_SMTR/resultados")
+
 ano_gtfs = "2026"
-endereco_gtfs = f"../../dados/gtfs/{ano_gtfs}/gtfs_rio-de-janeiro_pub.zip"
+endereco_gtfs = BASE_DADOS / f"gtfs/{ano_gtfs}/gtfs_rio-de-janeiro_pub.zip"
 tipos_dia = ['du', 'sab', 'dom']
 
 # FILTRO DE LINHAS A EXCLUIR
 linhas_excluir = []
 
 # Pasta de saída
-from pathlib import Path
-pasta_saida = (Path(__file__).resolve().parent / "../../../resultados/partidas").resolve()
+pasta_saida = BASE_RESULTADOS / "partidas"
 pasta_saida.mkdir(parents=True, exist_ok=True)
 
 print("\n==========================================================")
@@ -52,7 +55,7 @@ print(f"  ✓ GTFS carregado: {len(df_routes)} rotas, {len(df_trips)} trips")
 frescoes = df_routes[df_routes['route_type'] == '200']['route_id'].tolist()
 df_trips = df_trips[~df_trips['route_id'].isin(frescoes)]
 
-path_fantasmas = "../../dados/insumos/trip_id_fantasma.txt"
+path_fantasmas = BASE_DADOS / "insumos/trip_id_fantasma.txt"
 if os.path.exists(path_fantasmas):
     trips_fantasma = pd.read_csv(path_fantasmas, header=None).iloc[:, 0].tolist()
 else:

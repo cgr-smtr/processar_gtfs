@@ -15,6 +15,9 @@ warnings.filterwarnings('ignore', category=pd.errors.DtypeWarning)
 # ==============================================================================
 # CONFIGURAÇÕES
 # ==============================================================================
+# Base directory for data - adjust this to your environment
+BASE_DADOS = Path("C:/R_SMTR/dados")
+
 ano_velocidade = '2025'
 mes_velocidade = '10'
 
@@ -24,7 +27,7 @@ quinzena_gtfs = '05'
 
 gtfs_processar = 'sppo'  # "brt" ou "sppo"
 
-endereco_gtfs = f"../../dados/gtfs/{ano_gtfs}/{gtfs_processar}_{ano_gtfs}-{mes_gtfs}-{quinzena_gtfs}Q.zip"
+endereco_gtfs = BASE_DADOS / f"gtfs/{ano_gtfs}/{gtfs_processar}_{ano_gtfs}-{mes_gtfs}-{quinzena_gtfs}Q.zip"
 velocidade_padrao_kmh = 15.0
 
 # ==============================================================================
@@ -181,7 +184,9 @@ def corrigir_horarios_faltantes(df, frequencies_df=None, vel_padrao_kmh=15.0):
     print(f"├─ Trips corrigidas: {trips_corrigidas}")
     print(f"└─ Trips impossíveis de corrigir (sem shape_dist): {len(trips_impossivel)}\n")
 
-def load_calendar(path="../../dados/calendario.json"):
+def load_calendar(path=None):
+    if path is None:
+        path = BASE_DADOS / "calendario.json"
     with open(path, 'r', encoding='utf-8') as f:
         data = json.load(f)
     holidays = set([datetime.strptime(hx, "%Y-%m-%d").date() for hx in data['holidays']])
@@ -285,9 +290,16 @@ if __name__ == "__main__":
 
     bases = []
     if gtfs_processar == "brt":
-        path_nm = Path(f"../../dados/viagens/{gtfs_processar}/{ano_velocidade}/{mes_velocidade}/validas")
+        path_nm = BASE_DADOS / f"viagens/{gtfs_processar}/{ano_velocidade}/{mes_velocidade}/validas"
+        if not path_nm.exists():
+            raise FileNotFoundError(f"Diretório de viagens BRT não encontrado: {path_nm}")
+            
         files = list(path_nm.rglob("*.csv"))
         print(f"Carregando {len(files)} arquivos CSV de BRT...")
+        
+        if len(files) == 0:
+            raise FileNotFoundError(f"Nenhum arquivo CSV encontrado em: {path_nm}")
+
         for f in files:
             df = pd.read_csv(f, dtype=str)
             bases.append(df)
@@ -297,8 +309,13 @@ if __name__ == "__main__":
         trips['distancia_planejada'] = pd.to_numeric(trips['distancia_planejada'], errors='coerce') / 1000.0
 
     else:
-        path_nm = Path(f"../../dados/viagens/{gtfs_processar}/{ano_velocidade}/{mes_velocidade}/")
-        files = list(path_nm.rglob("*.parquet"))
+        path_nm = BASE_DADOS / f"viagens/{gtfs_processar}/{ano_velocidade}/{mes_velocidade}/"
+        if not path_nm.exists():
+             print(f"⚠ Aviso: Diretório de viagens {gtfs_processar} não encontrado: {path_nm}")
+             files = []
+        else:
+            files = list(path_nm.rglob("*.parquet"))
+            
         print(f"Carregando {len(files)} arquivos Parquet de SPPO...")
         for f in files:
             try:
@@ -331,7 +348,7 @@ if __name__ == "__main__":
         else:
             trips = pd.DataFrame(columns=['servico', 'direction_id', 'datetime_partida', 'datetime_chegada', 'distancia_planejada', 'data'])
             
-        path_frescao = Path(f"../../dados/viagens/frescao/{ano_velocidade}/{mes_velocidade}/validas/")
+        path_frescao = BASE_DADOS / f"viagens/frescao/{ano_velocidade}/{mes_velocidade}/validas/"
         if path_frescao.exists():
             files_f = list(path_frescao.rglob("*.csv"))
             if files_f:
@@ -388,6 +405,9 @@ if __name__ == "__main__":
     print("==============================================================================\n")
     print(f"Lendo GTFS: {endereco_gtfs}\n")
     
+    if not endereco_gtfs.exists():
+        raise FileNotFoundError(f"Arquivo GTFS não encontrado: {endereco_gtfs}")
+
     gtfs_data = {}
     with zipfile.ZipFile(endereco_gtfs, 'r') as z:
         for fname in ['stop_times.txt', 'trips.txt', 'routes.txt', 'frequencies.txt']:
@@ -544,7 +564,7 @@ if __name__ == "__main__":
     colunas_finais = [c for c in colunas_originais if c in stp_tms.columns]
     stop_times_final = stp_tms[colunas_finais]
     
-    endereco_gtfs_proc = f"../../dados/gtfs/{ano_gtfs}/{gtfs_processar}_{ano_gtfs}-{mes_gtfs}-{quinzena_gtfs}Q_PROC.zip"
+    endereco_gtfs_proc = BASE_DADOS / f"gtfs/{ano_gtfs}/{gtfs_processar}_{ano_gtfs}-{mes_gtfs}-{quinzena_gtfs}Q_PROC.zip"
     
     print(f"Salvando em: {Path(endereco_gtfs_proc).resolve()}")
     

@@ -5,6 +5,7 @@ from shapely.geometry import Point, LineString
 import zipfile
 import os
 import time
+from pathlib import Path
 
 import warnings
 warnings.filterwarnings('ignore', category=pd.errors.DtypeWarning)
@@ -13,12 +14,14 @@ warnings.filterwarnings('ignore', category=UserWarning) # Ignores some shapely w
 # ==============================================================================
 # CONFIGURAÇÕES
 # ==============================================================================
+BASE_DADOS = Path("C:/R_SMTR/dados")
+
 ano_gtfs = "2026"
 mes_gtfs = "03"
 quinzena_gtfs = "05"
 
-endereco_gtfs_combi = f"../../dados/gtfs/{ano_gtfs}/gtfs_rio-de-janeiro_pub.zip"
-pasta_shape_sppo = f"../../dados/shapes/{ano_gtfs}"
+endereco_gtfs_combi = BASE_DADOS / f"gtfs/{ano_gtfs}/gtfs_rio-de-janeiro_pub.zip"
+pasta_shape_sppo = BASE_DADOS / f"shapes/{ano_gtfs}"
 
 print("\n╔════════════════════════════════════════════════════════════════════════════╗")
 print("║                       GERAÇÃO DE SHAPES (GIS)                              ║")

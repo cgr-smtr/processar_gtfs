@@ -5,12 +5,15 @@ import os
 from pathlib import Path
 
 # Parameters
+BASE_DADOS = Path("C:/R_SMTR/dados")
+BASE_RESULTADOS = Path("C:/R_SMTR/resultados")
+
 ano_gtfs = "2026"
 mes_gtfs = "03"
 quinzena_gtfs = "04"
 
 # GTFS file path
-end_gtfs = f"../../dados/gtfs/{ano_gtfs}/gtfs_combi_{ano_gtfs}-{mes_gtfs}-{quinzena_gtfs}Q.zip"
+end_gtfs = BASE_DADOS / f"gtfs/{ano_gtfs}/gtfs_combi_{ano_gtfs}-{mes_gtfs}-{quinzena_gtfs}Q.zip"
 
 # Read GTFS (frequencies and trips) directly from the ZIP file
 # We'll use pandas to read the specific CSVs from within the zip archive
@@ -47,7 +50,7 @@ linhas_processar = frequencias_desvios[['trip_short_name', 'trip_headsign', 'ser
     .sort_values(by=['trip_short_name', 'service_id'], ascending=[True, False])
 
 # Define the output directory based on R script
-pasta_qh = Path(f"../../resultados/quadro_horario_extraido/{ano_gtfs}/{mes_gtfs}/qh_por_linha/{quinzena_gtfs}Q/")
+pasta_qh = BASE_RESULTADOS / f"quadro_horario_extraido/{ano_gtfs}/{mes_gtfs}/qh_por_linha/{quinzena_gtfs}Q/"
 # R equivalent to dir.create:
 os.makedirs(pasta_qh, exist_ok=True)
 
