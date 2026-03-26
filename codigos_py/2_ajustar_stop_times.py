@@ -20,7 +20,7 @@ mes_velocidade = '10'
 
 ano_gtfs = '2026'
 mes_gtfs = '03'
-quinzena_gtfs = '04'
+quinzena_gtfs = '05'
 
 gtfs_processar = 'sppo'  # "brt" ou "sppo"
 

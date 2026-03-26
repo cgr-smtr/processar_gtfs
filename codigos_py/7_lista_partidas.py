@@ -12,11 +12,11 @@ endereco_gtfs = f"../../dados/gtfs/{ano_gtfs}/gtfs_rio-de-janeiro_pub.zip"
 tipos_dia = ['du', 'sab', 'dom']
 
 # FILTRO DE LINHAS A EXCLUIR
-linhas_excluir = ["SE867"]
+linhas_excluir = []
 
 # Pasta de saída
 from pathlib import Path
-pasta_saida = (Path(__file__).resolve().parent / "../../resultados/partidas").resolve()
+pasta_saida = (Path(__file__).resolve().parent / "../../../resultados/partidas").resolve()
 pasta_saida.mkdir(parents=True, exist_ok=True)
 
 print("\n==========================================================")
@@ -83,10 +83,13 @@ def timedelta_to_horario(td):
 print("\nAviso: As extensões exatas (shapes) exigem EPSG:31983 processado. Simplificando via coluna shape_dist_traveled se existir.")
 extensoes = {}
 if 'shape_dist_traveled' in df_st.columns:
-    df_st_max = df_st.groupby('trip_id')['shape_dist_traveled'].max().reset_index()
-    df_st_max['shape_dist_traveled'] = pd.to_numeric(df_st_max['shape_dist_traveled'], errors='coerce')
+    df_st['shape_dist_num'] = pd.to_numeric(df_st['shape_dist_traveled'], errors='coerce')
+    df_st_max = df_st.groupby('trip_id')['shape_dist_num'].max().reset_index()
+    df_st_max.rename(columns={'shape_dist_num': 'extensao'}, inplace=True)
+    
     df_trips_ext = df_trips.merge(df_st_max, on='trip_id', how='left')
-    df_trips_ext['extensao'] = df_trips_ext['shape_dist_traveled'].fillna(0).astype(int)
+    df_trips_ext['extensao'] = df_trips_ext['extensao'].fillna(0).astype(int)
+    
     # Average grouped extension per direction to match the script's intention:
     extensoes_df = df_trips_ext.groupby(['trip_short_name', 'direction_id', 'route_id'])['extensao'].max().reset_index()
 else:

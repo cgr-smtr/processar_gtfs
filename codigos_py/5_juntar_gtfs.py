@@ -14,7 +14,7 @@ warnings.filterwarnings('ignore', category=pd.errors.DtypeWarning)
 # ==============================================================================
 ano_gtfs      = "2026"
 mes_gtfs      = "03"
-quinzena_gtfs = "04"
+quinzena_gtfs = "05"
 sufixo        = f"{ano_gtfs}-{mes_gtfs}-{quinzena_gtfs}Q"
 
 endereco_sppo       = f"../../dados/gtfs/{ano_gtfs}/sppo_{sufixo}_PROC.zip"

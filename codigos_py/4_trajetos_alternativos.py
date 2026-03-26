@@ -13,7 +13,7 @@ warnings.filterwarnings('ignore')
 # ==============================================================================
 ano_gtfs = "2026"
 mes_gtfs = "03"
-quinzena_gtfs = "04"
+quinzena_gtfs = "05"
 
 endereco_gtfs = f"../../dados/gtfs/{ano_gtfs}/sppo_{ano_gtfs}-{mes_gtfs}-{quinzena_gtfs}Q_PROC.zip"
 caminho_saida = f"C:/R_SMTR/dados/os/os_{ano_gtfs}-{mes_gtfs}-{quinzena_gtfs}_excep.csv"
