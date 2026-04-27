@@ -17,8 +17,8 @@ warnings.filterwarnings('ignore', category=UserWarning) # Ignores some shapely w
 BASE_DADOS = Path("C:/R_SMTR/dados")
 
 ano_gtfs = "2026"
-mes_gtfs = "03"
-quinzena_gtfs = "05" #ESTUDO, NÃO CONSIDERAR MAIS QUINZENA!!!!
+mes_gtfs = "05"
+estudo_gtfs = "01" #ESTUDO, NÃO CONSIDERAR MAIS QUINZENA!!!!
 
 endereco_gtfs_combi = BASE_DADOS / f"gtfs/{ano_gtfs}/gtfs_rio-de-janeiro_pub.zip"
 pasta_shape_sppo = BASE_DADOS / f"shapes/{ano_gtfs}"
@@ -242,7 +242,7 @@ if 'descricao_desvio' in shapes_ext_shp.columns:
 cols_shp = [c for c in mapeamento_shp.values() if c in shapes_ext_shp.columns]
 shapes_ext_shp = shapes_ext_shp[cols_shp + ['geometry']]
 
-nome_arquivo = f"shapes_trajetos_{ano_gtfs}-{mes_gtfs}-{quinzena_gtfs}Q"
+nome_arquivo = f"shapes_trajetos_{ano_gtfs}-{mes_gtfs}-{estudo_gtfs}Q"
 endereco_shp = os.path.join(pasta_shape_sppo, f"{nome_arquivo}.shp")
 endereco_gpkg = os.path.join(pasta_shape_sppo, f"{nome_arquivo}.gpkg")
 
@@ -284,7 +284,7 @@ if not df_stops.empty and not df_stop_times.empty:
     gtfs_stops_filt['geometry'] = gtfs_stops_filt.apply(create_point, axis=1)
     gdf_pontos = gpd.GeoDataFrame(gtfs_stops_filt, geometry='geometry', crs="EPSG:4326")
     
-    nome_pontos = f"shapes_pontos_{ano_gtfs}-{mes_gtfs}-{quinzena_gtfs}Q"
+    nome_pontos = f"shapes_pontos_{ano_gtfs}-{mes_gtfs}-{estudo_gtfs}Q"
     endereco_pontos_shp = os.path.join(pasta_shape_sppo, f"{nome_pontos}.shp")
     endereco_pontos_gpkg = os.path.join(pasta_shape_sppo, f"{nome_pontos}.gpkg")
     

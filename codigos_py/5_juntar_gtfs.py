@@ -15,9 +15,9 @@ warnings.filterwarnings('ignore', category=pd.errors.DtypeWarning)
 BASE_DADOS = Path("C:/R_SMTR/dados")
 
 ano_gtfs      = "2026"
-mes_gtfs      = "03"
-quinzena_gtfs = "05" #ESTUDO, NÃO CONSIDERAR MAIS QUINZENA!!!!
-sufixo        = f"{ano_gtfs}-{mes_gtfs}-{quinzena_gtfs}Q"
+mes_gtfs      = "05"
+estudo_gtfs = "01" #ESTUDO, NÃO CONSIDERAR MAIS QUINZENA!!!!
+sufixo        = f"{ano_gtfs}-{mes_gtfs}-{estudo_gtfs}Q"
 
 endereco_sppo       = BASE_DADOS / f"gtfs/{ano_gtfs}/sppo_{sufixo}_PROC.zip"
 endereco_brt        = BASE_DADOS / f"gtfs/{ano_gtfs}/brt_{sufixo}_PROC.zip"
