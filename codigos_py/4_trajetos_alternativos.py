@@ -22,6 +22,10 @@ quinzena_gtfs = "04" #ESTUDO, NÃO CONSIDERAR MAIS QUINZENA!!!!
 endereco_gtfs = BASE_DADOS / f"gtfs/{ano_gtfs}/sppo_{ano_gtfs}-{mes_gtfs}-{quinzena_gtfs}Q_PROC.zip"
 caminho_saida = BASE_DADOS / f"os/os_{ano_gtfs}-{mes_gtfs}-{quinzena_gtfs}_excep.csv"
 
+# Filtrar por calendários específicos (service_id). Se vazio, utiliza todos.
+# Exemplo: ["U", "S", "D"]
+CALENDARIOS_ALVO = ["EXCEP"] 
+
 print("\n╔════════════════════════════════════════════════════════════════════════════╗")
 print("║              PROCESSAMENTO DE GTFS - TRAJETOS ALTERNATIVOS                 ║")
 print("╚════════════════════════════════════════════════════════════════════════════╝\n")
@@ -44,9 +48,14 @@ df_shapes = gtfs_data['shapes']
 # FILTRAR TRIPS DE DESVIO E ROTAS
 # ==============================================================================
 print("Identificando viagens de desvio...")
+# Filter by service_id if specified
+if CALENDARIOS_ALVO:
+    print(f"Filtrando viagens para os calendários: {CALENDARIOS_ALVO}")
+    df_trips = df_trips[df_trips['service_id'].isin(CALENDARIOS_ALVO)].copy()
+
 # Filter trips containing '[' in trip_headsign
 mask_desvio = df_trips['trip_headsign'].notna() & df_trips['trip_headsign'].str.contains(r"\[")
-trips_desvio = df_trips[mask_desvio][['trip_id', 'trip_short_name', 'trip_headsign', 'shape_id', 'route_id', 'direction_id']].copy()
+trips_desvio = df_trips[mask_desvio][['trip_id', 'trip_short_name', 'trip_headsign', 'shape_id', 'route_id', 'direction_id', 'service_id']].copy()
 
 # Extract detour text (between '[' and ']')
 trips_desvio['desvio'] = trips_desvio['trip_headsign'].str.extract(r"(\[.*?\])")[0]
