@@ -1,0 +1,8 @@
+pandas
+numpy
+geopandas
+shapely
+pyogrio
+pyarrow
+loguru
+tqdm
