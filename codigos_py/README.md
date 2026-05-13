@@ -126,6 +126,32 @@ Este código está datado e não tem mais utilidade.
 
 ---
 
+## 8️⃣ `8_gerar_extensoes.py`
+**Objetivo:** Gerar uma listagem consolidada de linhas por sentido e vista, com o cálculo da maior extensão (em metros) para cada serviço.
+
+| Item | Descrição |
+|------|-----------|
+| **Entrada** | GTFS público (`gtfs_rio-de-janeiro_pub.zip`) |
+| **Processamento** | 1. Filtra rotas SPPO (route_type=700). |
+|  | 2. Remove viagens de exceção/desvio. |
+|  | 3. Calcula extensões geográficas de todos os shapes (EPSG:31983). |
+|  | 4. Consolida a maior extensão por (Serviço, Vista, Sentido). |
+| **Saída** | CSV em `resultados/extensoes/extensoes_YYYY-MM-QQQ.csv` |
+| **Dependências** | `pandas`, `geopandas`, `shapely` |
+
+---
+
+## 8️⃣.1️⃣ `8.1_gerar_extensoes_rio.py`
+**Objetivo:** Variante do script 8 para processar arquivos GTFS no formato simplificado `rio_YYYY-MM.zip`.
+
+| Item | Descrição |
+|------|-----------|
+| **Entrada** | GTFS em `dados/gtfs/YYYY/rio_YYYY-MM.zip` |
+| **Processamento** | Idêntico ao script 8, mas adaptado para o novo padrão de nomenclatura de arquivos. |
+| **Saída** | CSV em `resultados/extensoes/extensoes_rio_YYYY-MM.csv` |
+
+---
+
 ## 📊 Visão Geral do Pipeline
 
 ```mermaid
@@ -139,6 +165,8 @@ graph TD
     E --> |"GTFS público"| G["7 - Lista Partidas"]
     F --> |"Shapefiles / GeoPackages"| OUT6["Arquivos GIS"]
     G --> |"CSVs + Parquet"| OUT7["Lista de partidas"]
+    E --> |"GTFS público"| H["8 - Gerar Extensões"]
+    H --> |"CSV de extensões"| OUT8["extensoes.csv"]
 
     style A fill:#4a90d9,color:#fff
     style B fill:#4a90d9,color:#fff
@@ -147,7 +175,8 @@ graph TD
     style E fill:#50b848,color:#fff
     style F fill:#9b59b6,color:#fff
     style G fill:#9b59b6,color:#fff
+    style H fill:#9b59b6,color:#fff
 ```
 
 > [!NOTE]
-> O script **1** é independente (usa o GTFS combinado já pronto). Os scripts **2→5→7** formam o pipeline principal de construção do GTFS. Os scripts **4**, e **6** são etapas de pós-processamento/exportação.
+> O script **1** é independente (usa o GTFS combinado já pronto). Os scripts **2→5→7** formam o pipeline principal de construção do GTFS. Os scripts **4**, **6**, **8** e **8.1** são etapas de pós-processamento/exportação.
