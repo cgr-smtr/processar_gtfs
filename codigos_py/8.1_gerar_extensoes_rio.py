@@ -77,12 +77,13 @@ df_shapes = gtfs['shapes']
 log_msg(f"Rotas: {len(df_routes)} | Trips: {len(df_trips)} | Shapes: {len(df_shapes)}")
 
 # ==============================================================================
-# FILTRAR ROTAS (apenas SPPO regular - route_type = 700)
+# FILTRAR ROTAS (apenas SPPO regular - route_type = 3 ou 700)
 # ==============================================================================
-rotas_700 = df_routes[df_routes['route_type'] == '700']['route_id']
-df_trips = df_trips[df_trips['route_id'].isin(rotas_700)].copy()
-df_routes = df_routes[df_routes['route_type'] == '700'].copy()
-log_msg(f"Rotas filtradas (route_type=700): {len(df_routes)} | Trips: {len(df_trips)}")
+mask_rotas = df_routes['route_type'].isin(['3', '700'])
+rotas_validas = df_routes[mask_rotas]['route_id']
+df_trips = df_trips[df_trips['route_id'].isin(rotas_validas)].copy()
+df_routes = df_routes[mask_rotas].copy()
+log_msg(f"Rotas filtradas (route_type in [3, 700]): {len(df_routes)} | Trips: {len(df_trips)}")
 
 # ==============================================================================
 # FILTRAR EXCEP / DESVIOS
