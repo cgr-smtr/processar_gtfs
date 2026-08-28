@@ -158,6 +158,19 @@ Todos os 10 scripts do repositório foram refatorados para aceitar um argumento 
 
 ---
 
+## 5️⃣.4️⃣ `5.4_eliminar_duplicatas_gtfs.py`
+**Objetivo:** **Eliminar duplicatas em linhas regulares** em arquivos GTFS (`gtfs_combi`, `gtfs_pub` ou qualquer GTFS indicado), **preservando 100% das viagens de excepcionalidades (`EXCEP` e desvios)**.
+
+| Item | Descrição |
+|------|-----------|
+| **Entrada** | Caminho do arquivo GTFS ZIP no PC (`endereco_gtfs`, ex: `C:/R_SMTR/dados/GTFS/2027/gtfs_combi_2026-07-02Q.zip`) |
+| **Critério de preservação** | Viagens com `service_id` contendo `EXCEP` ou com `[...]` no `trip_headsign` são mantidas 100% intactas sem qualquer exclusão |
+| **Processamento** | 1. Separa viagens regulares de viagens `EXCEP`. <br>2. Identifica rotas regulares duplicadas por `route_short_name` e unifica `route_id` mantendo a primeira ocorrência. <br>3. Remove trips regulares redundantes por assinatura `(serviço, direction_id, service_id, horários/frequência de partida)`. <br>4. Aplica `clean_gtfs` em cascata para remover registros órfãos nas demais tabelas (`stop_times`, `shapes`, `stops`, `calendar`, etc.). |
+| **Saída** | Arquivo GTFS atualizado sem duplicatas (sobrescreve o original ou salva no caminho definido em `caminho_saida`) |
+| **Dependências** | `pandas`, `numpy`, `zipfile`, `pathlib` |
+
+---
+
 ## 9️⃣ `9_filtrar_gtfs_por_lista.py`
 **Objetivo:** Gerar um **GTFS filtrado** contendo apenas as trips presentes em uma lista de excepcionalidades/desvios, combinando cinco critérios de correspondência.
 
@@ -273,6 +286,7 @@ graph TD
     E51["5.1 - Juntar GTFS único modal"]
     E52["5.2 - Concatenar simples"]
     E53["5.3 - Juntar com substituição"]
+    E54["5.4 - Eliminar Duplicatas GTFS"]
     E9["9 - Filtrar GTFS por Lista"]
     E10["10 - Juntar Dois GTFS"]
     PUB["gtfs_combi.zip + pub.zip"]
@@ -306,6 +320,8 @@ graph TD
     E51 --> PUB
     E52 --> PUB
     E53 --> PUB
+    PUB --> E54
+    E54 --> PUB
     PUB --> F
     PUB --> G
     PUB --> H
@@ -322,6 +338,7 @@ graph TD
     style E51 fill:#50b848,color:#fff
     style E52 fill:#50b848,color:#fff
     style E53 fill:#50b848,color:#fff
+    style E54 fill:#50b848,color:#fff
     style E9 fill:#c0392b,color:#fff
     style E10 fill:#c0392b,color:#fff
     style F fill:#9b59b6,color:#fff
@@ -334,4 +351,4 @@ graph TD
 ```
 
 > [!NOTE]
-> O script **0** é opcional mas recomendado antes de iniciar o pipeline. O script **2** é a entrada principal para todos os modais. Os scripts **5**, **5.1**, **5.2** e **5.3** são alternativas de combinação; use o mais adequado ao contexto. Os scripts **4**, **6**, **7**, **8** e **8.1** são etapas de pós-processamento/exportação independentes. Os scripts **9** e **10** formam um sub-fluxo independente para geração de GTFSs com excepcionalidades/desvios selecionados.
+> O script **0** é opcional mas recomendado antes de iniciar o pipeline. O script **2** é a entrada principal para todos os modais. Os scripts **5**, **5.1**, **5.2** e **5.3** são alternativas de combinação; o script **5.4** elimina duplicatas em linhas regulares (preservando EXCEP) nos GTFS combinados/públicos. Os scripts **4**, **6**, **7**, **8** e **8.1** são etapas de pós-processamento/exportação independentes. Os scripts **9** e **10** formam um sub-fluxo independente para geração de GTFSs com excepcionalidades/desvios selecionados.

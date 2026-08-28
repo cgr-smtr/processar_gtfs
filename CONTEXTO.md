@@ -105,3 +105,38 @@ A lista embutida no script 9 contém **63 entradas** cobrindo os seguintes servi
 Consórcios envolvidos: **Intersul**, **Internorte**, **Transcarioca**, **Santa Cruz**
 
 Tipos de evento: `[desvio_feira]`, `[desvio_obras]`, `[desvio_tunel]`, `[desvio_aterro]`, `[desvio_lazer]`, `[desvio_maracana]`, `[desvio_maracana_2]`, `[desvio_tunel_e_desvio_aterro]`, `[desvio_maracana_e_tunel]`, `[excepcionalidade]`, `[excepcionalidade_1]`, `[excepcionalidade_2]`, `[eventos_climaticos]`, `[eventos_climaticos_1]`
+
+---
+
+# CONTEXTO — Sessão de Desenvolvimento 2026-08-21
+
+## Resumo
+
+Nesta sessão foi criado o script `5.4_eliminar_duplicatas_gtfs.py` no pipeline do projeto, com o objetivo de eliminar duplicatas em linhas regulares nos arquivos GTFS, preservando integralmente todas as viagens de excepcionalidade (`EXCEP` e desvios).
+
+---
+
+## Script Criado: `5.4_eliminar_duplicatas_gtfs.py`
+
+**Motivação:** Em alguns cenários de processamento e junção de GTFS, ocorrem duplicações de linhas regulares (ex: rotas repetidas com IDs diferentes ou viagens redundantes de mesmo itinerário/horário). O objetivo é higienizar o GTFS eliminando essas duplicações em linhas regulares sem afetar de forma alguma as viagens com desvios e excepcionalidades (`service_id == "EXCEP"` ou tags `[...]` no `trip_headsign`).
+
+**Decisões de design:**
+- **Separação estrita:** Isola viagens regulares de viagens `EXCEP` antes da deduplicação.
+- **Preservação de EXCEP:** Trips com `service_id` contendo `EXCEP` ou com tags `[...]` no `trip_headsign` são mantidas 100% intactas.
+- **Deduplicação de rotas (`routes.txt`):** Identifica rotas regulares com `route_short_name` duplicado e unifica `route_id`, mantendo a primeira ocorrência e remapeando as viagens.
+- **Deduplicação de trips (`trips.txt`):** Remove viagens regulares que compartilham a mesma chave `(serviço, direction_id, service_id, assinatura_de_partida)`.
+- **Limpeza em cascata (`clean_gtfs`):** Propaga a limpeza para remover registros órfãos nas demais tabelas associadas (`stop_times`, `shapes`, `stops`, `calendar`, `calendar_dates`, `frequencies`).
+- **Flexibilidade de entrada:** Aceita o caminho direto do arquivo GTFS no computador (`endereco_gtfs`) com ou sem extensão `.zip`, e suporta caminho de saída customizado (`caminho_saida`) ou sobrescrita do arquivo original.
+
+**Entradas:**
+- `endereco_gtfs`: Caminho direto no PC para o arquivo GTFS ZIP (ex: `C:/R_SMTR/dados/GTFS/2027/gtfs_combi_2026-07-02Q.zip`).
+
+**Saída:**
+- Arquivo GTFS limpo (sobrescreve o original ou grava no caminho configurado).
+
+---
+
+## Integração com a Interface Streamlit
+
+- Adicionada a opção `"5.4 Eliminar Duplicatas GTFS"` na **Aba 5 (Juntar GTFS)** em `src/tabs/tab_5_juntar.py`.
+- Interface com inputs para o caminho do arquivo GTFS de entrada e caminho opcional de saída.
