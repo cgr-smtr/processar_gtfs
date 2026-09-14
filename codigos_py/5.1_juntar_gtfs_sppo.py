@@ -33,12 +33,12 @@ if _args.config:
 BASE_DADOS = Path(_config.get("BASE_DADOS", "C:/R_SMTR/dados"))
 
 ano_gtfs      = _config.get("ano_gtfs", "2026")
-mes_gtfs      = _config.get("mes_gtfs", "08")
-estudo_gtfs   = _config.get("estudo_gtfs", "02") #ESTUDO, NÃO CONSIDERAR MAIS QUINZENA!!!!
+mes_gtfs      = _config.get("mes_gtfs", "09")
+estudo_gtfs   = _config.get("estudo_gtfs", "01") #ESTUDO, NÃO CONSIDERAR MAIS QUINZENA!!!!
 sufixo        = f"{ano_gtfs}-{mes_gtfs}-{estudo_gtfs}Q"
 
 # Tipo de GTFS a processar: "brt", "sppo" ou "rio"
-gtfs_processar = _config.get("gtfs_processar", "rio")  # "brt" ou "sppo" ou "rio"
+gtfs_processar = _config.get("gtfs_processar", "sppo")  # "brt" ou "sppo" ou "rio"
 
 # Etapa(s) do GTFS Rio (usado apenas quando gtfs_processar == "rio")
 # Pode ser uma string única "ETAPA_01" ou múltiplas separadas por vírgula "ETAPA_01,ETAPA_02"

@@ -30,9 +30,9 @@ if _args.config:
 # ==============================================================================
 BASE_DADOS = Path(_config.get("BASE_DADOS", "C:/R_SMTR/dados"))
 
-ano_gtfs = _config.get("ano_gtfs", "2026")
+ano_gtfs = _config.get("ano_gtfs", "2027")
 mes_gtfs = _config.get("mes_gtfs", "08")
-estudo_gtfs = _config.get("estudo_gtfs", "02") #ESTUDO, NÃO CONSIDERAR MAIS QUINZENA!!!!
+estudo_gtfs = _config.get("estudo_gtfs", "04") #ESTUDO, NÃO CONSIDERAR MAIS QUINZENA!!!!
 
 endereco_gtfs_combi = Path(_config.get("endereco_gtfs_combi", BASE_DADOS / f"gtfs/{ano_gtfs}/gtfs_rio-de-janeiro_pub.zip"))
 pasta_shape_sppo = Path(_config.get("pasta_shape_sppo", BASE_DADOS / f"shapes/{ano_gtfs}"))

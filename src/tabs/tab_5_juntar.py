@@ -8,12 +8,13 @@ def render():
     st.markdown("Opções para juntar múltiplos GTFS dependendo do caso de uso.")
     
     modo = st.radio(
-        "Selecione o Script de Junção", 
+        "Selecione o Script de Junção / Limpeza", 
         [
             "5. Juntar SPPO + BRT", 
             "5.1 Juntar Único (apenas SPPO ou BRT)", 
             "5.2 Concatenar Simples", 
-            "5.3 Juntar c/ Substituição"
+            "5.3 Juntar c/ Substituição",
+            "5.4 Eliminar Duplicatas GTFS"
         ],
         key="t5_modo"
     )
@@ -179,4 +180,31 @@ def render():
                 "OUTPUT_ZIP": output_zip
             }
             script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "codigos_py", "5.3_juntar_gtfs_substituicao.py"))
+            run_script(script_path, config)
+
+    elif "5.4" in modo:
+        st.markdown("Elimina duplicatas em linhas regulares (mesmo serviço, sentido e partidas), **preservando 100% das viagens de excepcionalidades (`EXCEP` e desvios)**.")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            endereco_gtfs = st.text_input(
+                "Caminho do Arquivo GTFS (Entrada)",
+                value=f"{base_dados}/gtfs/{ano}/gtfs_combi_{sufixo}.zip",
+                help="Informe o caminho completo do arquivo GTFS ZIP a ser deduplicado (ex: C:/R_SMTR/dados/GTFS/2027/gtfs_combi_2026-07-02Q.zip)",
+                key="t5_endereco_gtfs_54"
+            )
+        with col2:
+            caminho_saida = st.text_input(
+                "Caminho do GTFS de Saída (Opcional)",
+                value="",
+                help="Deixe em branco para sobrescrever o arquivo de entrada com o GTFS limpo, ou informe um novo caminho.",
+                key="t5_caminho_saida_54"
+            )
+            
+        if st.button("▶ Executar Script 5.4", key="btn_54"):
+            config = {
+                "endereco_gtfs": endereco_gtfs,
+                "caminho_saida": caminho_saida
+            }
+            script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "codigos_py", "5.4_eliminar_duplicatas_gtfs.py"))
             run_script(script_path, config)

@@ -29,12 +29,12 @@ if _args.config:
 # ==============================================================================
 BASE_DADOS = Path(_config.get("BASE_DADOS", "C:/R_SMTR/dados"))
 
-ano_gtfs = _config.get("ano_gtfs", "2026")
-mes_gtfs = _config.get("mes_gtfs", "12")
-estudo_gtfs = _config.get("estudo_gtfs", "18") # ESTUDO, NÃO CONSIDERAR MAIS QUINZENA!!!!
+ano_gtfs = _config.get("ano_gtfs", "2027")
+mes_gtfs = _config.get("mes_gtfs", "09")
+estudo_gtfs = _config.get("estudo_gtfs", "01") # ESTUDO, NÃO CONSIDERAR MAIS QUINZENA!!!!
 
-endereco_gtfs = Path(_config.get("endereco_gtfs", BASE_DADOS / f"gtfs/{ano_gtfs}/sppo_{ano_gtfs}-{mes_gtfs}-{estudo_gtfs}Q_PROC.zip"))
-caminho_saida = Path(_config.get("caminho_saida", BASE_DADOS / f"os/os_{ano_gtfs}-{mes_gtfs}-{estudo_gtfs}_excep.csv"))
+endereco_gtfs = Path(_config.get("endereco_gtfs", BASE_DADOS / f"gtfs/{ano_gtfs}/rio_{ano_gtfs}-{mes_gtfs}-{estudo_gtfs}Q_PROC.zip"))
+caminho_saida = Path(_config.get("caminho_saida", BASE_DADOS / f"os/os_{ano_gtfs}-{mes_gtfs}-{estudo_gtfs}_excep_rio.csv"))
 
 # Filtrar por calendários específicos (service_id). Se vazio, utiliza todos.
 # Exemplo: ["U", "S", "D", "EXCEP"]

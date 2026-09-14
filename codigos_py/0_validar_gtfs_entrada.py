@@ -26,9 +26,9 @@ if _args.config:
 BASE_DADOS = Path(_config.get("BASE_DADOS", "C:/R_SMTR/dados"))
 PASTA_RESULTADOS = Path(_config.get("PASTA_RESULTADOS", "C:/R_SMTR/resultados/validacoes_snapshot"))
 
-ano_gtfs = _config.get("ano_gtfs", "2026")
+ano_gtfs = _config.get("ano_gtfs", "2027")
 mes_gtfs = _config.get("mes_gtfs", "08")
-estudo_gtfs = _config.get("estudo_gtfs", "02")
+estudo_gtfs = _config.get("estudo_gtfs", "04")
 gtfs_processar = _config.get("gtfs_processar", "sppo")  # "brt" ou "sppo" ou "rio"
 
 # Arquivo GTFS de entrada (pode ser _PROC.zip ou original)
