@@ -29,18 +29,18 @@ if _args.config:
 BASE_DADOS = Path(_config.get("BASE_DADOS", "C:/R_SMTR/dados"))
 BASE_RESULTADOS = Path(_config.get("BASE_RESULTADOS", "C:/R_SMTR/resultados"))
 
-ano_gtfs = str(_config.get("ano_gtfs", "2029"))
+ano_gtfs = str(_config.get("ano_gtfs", "2030"))
 mes_gtfs = str(_config.get("mes_gtfs", "10")).zfill(2)
-estudo_gtfs = str(_config.get("estudo_gtfs", "01"))
+estudo_gtfs = str(_config.get("estudo_gtfs", "02"))
 
 # Serviços e horários de corte
 servico_origem = str(_config.get("servico_origem", "U_REG"))      # Ex.: Dia Útil
 servico_destino = str(_config.get("servico_destino", "D_REG"))    # Ex.: Domingo
 hora_inicio = str(_config.get("hora_inicio", "06:00:00"))         # Início do bloco a importar
-hora_fim = str(_config.get("hora_fim", "20:00:00"))               # Fim do bloco a importar (exclusivo)
+hora_fim = str(_config.get("hora_fim", "21:00:00"))               # Fim do bloco a importar (exclusivo)
 
 # Linhas a rodar (se vazio ou ['todas'], processa todas as linhas encontradas)
-linhas_rodar = _config.get("linhas_rodar", ["007", "014", "100", "104", "107", "109", "117", "133", "157", "160", "161", "162", "165", "167", "169", "201", "202", "209", "217", "229", "232", "238", "247", "249", "254", "292", "296", "298", "301", "302", "306", "312", "313", "315", "319", "324", "326", "328", "329", "335", "341", "342", "343", "348", "350", "353", "355", "361", "362", "363", "368", "369", "371", "378", "383", "384", "386", "388", "390", "393", "397", "399", "409", "410", "415", "422", "426", "448", "455", "456", "457", "461", "472", "473", "474", "476", "483", "492", "497", "507", "518", "519", "539", "550", "552", "553", "554", "557", "565", "583", "584", "600", "601", "603", "606", "607", "608", "610", "611", "613", "614", "616", "621", "622", "623", "624", "625", "627", "628", "629", "630", "636", "638", "639", "650", "651", "652", "653", "665", "669", "678", "679", "685", "687", "688", "691", "692", "696", "711", "712", "721", "731", "737", "741", "743", "745", "746", "753", "754", "756", "759", "764", "765", "766", "770", "771", "774", "775", "778", "779", "780", "783", "785", "786", "788", "790", "791", "793", "794", "796", "798", "799", "801", "802", "803", "810", "812", "817", "819", "820", "830", "831", "834", "835", "836", "837", "838", "843", "845", "846", "847", "848", "850", "851", "852", "853", "854", "855", "857", "859", "861", "862", "863", "864", "865", "866", "867", "871", "872", "878", "880", "881", "883", "884", "885", "894", "895", "897", "900", "901", "905", "906", "908", "910", "913", "915", "917", "918", "919", "920", "922", "925", "926", "928", "932", "940", "944", "946", "950", "951", "954", "959", "979", "987", "990", "LECD126", "LECD133", "LECD134", "LECD136", "LECD138", "LECD150", "LECD151", "LECD153", "LECD154", "LECD155", "LECD156", "LECD157", "LECD158", "SP265", "SP759", "SP795", "SP805", "SP864", "SP918", "SV319", "SV474", "SV606", "SV624", "SV669", "SV774", "SV777", "SV790", "SV831", "SV853", "SV863", "SV866", "SV878", "SV908", "SV917", "SV922", "SVA665", "SVB665", "SVB685"])
+linhas_rodar = _config.get("linhas_rodar", [])
 if isinstance(linhas_rodar, str):
     linhas_rodar = [x.strip() for x in linhas_rodar.split(',') if x.strip()]
 linhas_rodar_set = {str(x).upper() for x in linhas_rodar} if linhas_rodar and ('todas' not in [str(x).lower() for x in linhas_rodar]) else set()

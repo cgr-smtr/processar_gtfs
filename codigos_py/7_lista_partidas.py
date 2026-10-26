@@ -27,13 +27,13 @@ if _args.config:
 BASE_DADOS = Path(_config.get("BASE_DADOS", "C:/R_SMTR/dados"))
 BASE_RESULTADOS = Path(_config.get("BASE_RESULTADOS", "C:/R_SMTR/resultados"))
 
-ano_gtfs = _config.get("ano_gtfs", "2026")
+ano_gtfs = _config.get("ano_gtfs", "2030")
 mes_gtfs = _config.get("mes_gtfs", '10')
-estudo_gtfs = _config.get("estudo_gtfs", '02') #ESTUDO, NÃO CONSIDERAR MAIS QUINZENA!!!!
+estudo_gtfs = _config.get("estudo_gtfs", '05') #ESTUDO, NÃO CONSIDERAR MAIS QUINZENA!!!!
 
 sufixo        = f"{ano_gtfs}-{mes_gtfs}-{estudo_gtfs}Q"
 
-endereco_gtfs = Path(_config.get("endereco_gtfs", BASE_DADOS / f"gtfs/{ano_gtfs}/gtfs_combi_2026-10-02Q_COMPLETO.zip")) # Alterar o nome do arquivo alvo
+endereco_gtfs = Path(_config.get("endereco_gtfs", BASE_DADOS / f"gtfs/{ano_gtfs}/0175_gtfs_out_26_1E_ret3.zip")) # Alterar o nome do arquivo alvo
 tipos_dia = _config.get("tipos_dia", ['du', 'sab', 'dom', 'pf'])
 if isinstance(tipos_dia, str):
     tipos_dia = [x.strip() for x in tipos_dia.split(',') if x.strip()]
@@ -134,9 +134,15 @@ if not df_shapes.empty:
     gdf_shapes_proj['extensao'] = gdf_shapes_proj.geometry.length.astype(int)
     
     # Merge with trips to get service/direction context
-    df_trips_ext = df_trips.merge(gdf_shapes_proj[['shape_id', 'extensao']], on='shape_id', how='left')
+    # Regra do script 8: extensão vem só dos shapes regulares (sem EXCEP/desvio),
+    # senão o max() pega o traçado de exceção e infla a extensão (ex.: 006 Ida 8460 -> 8866)
+    df_trips_reg = df_trips[
+        (df_trips['service_id'] != 'EXCEP')
+        & ~(df_trips['trip_headsign'].notna() & df_trips['trip_headsign'].str.contains(r'\['))
+    ]
+    df_trips_ext = df_trips_reg.merge(gdf_shapes_proj[['shape_id', 'extensao']], on='shape_id', how='left')
     extensoes_df = df_trips_ext.groupby(['trip_short_name', 'direction_id', 'route_id'])['extensao'].max().reset_index()
-    print(f"  ✓ Extensões calculadas para {len(extensoes_df)} itinerários")
+    print(f"  ✓ Extensões calculadas para {len(extensoes_df)} itinerários (sem EXCEP/desvio)")
 else:
     print("  ⚠️ shapes.txt não encontrado. Extensões ficarão zeradas.")
     extensoes_df = pd.DataFrame(columns=['trip_short_name', 'direction_id', 'route_id', 'extensao'])
@@ -237,6 +243,7 @@ for current_tipo_dia in tipos_dia:
         
     if not extensoes_df.empty:
         viagens_completo = viagens_completo.merge(extensoes_df, on=['trip_short_name', 'direction_id', 'route_id'], how='left')
+        viagens_completo['extensao'] = viagens_completo['extensao'].fillna(0).astype(int)
     else:
         viagens_completo['extensao'] = 0
         

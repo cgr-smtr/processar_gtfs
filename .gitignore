@@ -32,6 +32,12 @@ partidas_dom.csv
 celulas_fragmentacao_domingo.csv
 relatorio_plano184_vs_gtfs0164_domingo*.csv
 
+# Relatórios de investigação (OS 190/191 x GTFS 0174) gerados na raiz
+relatorio_os190_vs_gtfs0174_*.csv
+resumo_os190_vs_gtfs0174.txt
+relatorio_os191_vs_gtfs0174_*.csv
+resumo_os191_vs_gtfs0174.txt
+
 # Pasta de validação: ignorar bases e relatórios gerados
 validacao/*.zip
 validacao/*.csv

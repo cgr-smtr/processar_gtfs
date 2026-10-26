@@ -249,9 +249,9 @@ Todos os 10 scripts do repositório foram refatorados para aceitar um argumento 
 
 | Item | Descrição |
 |------|-----------|
-| **Entrada** | GTFS público (`gtfs_combi_2026-10-02Q_RIO.zip`) |
+| **Entrada** | GTFS combinado (default do CLI: `gtfs/2030/0175_gtfs_out_26_1E_ret3.zip`; aba Streamlit: `gtfs_combi_2026-10-02Q_RIO.zip`) |
 | **Processamento** | 1. Filtra frescões e trips fantasma |
-|  | 2. Calculates extensões dos shapes via GIS (EPSG:31983) |
+|  | 2. Calcula extensões dos shapes via GIS (EPSG:31983) — **máximo por itinerário, excluindo trips `EXCEP` e desvios** (`[` no `trip_headsign`), mesma regra dos scripts 8/8.1 (o 7 não filtra `route_type`, para cobrir o BRT 702) |
 |  | 3. Para cada tipo de dia (DU/SAB/DOM/PF — `pf` = ponto facultativo, `service_id` `F_REG`): |
 |  |    a. Expande `frequencies.txt` em partidas individuais (start → end, incrementando headway) |
 |  |    b. Extrai horários do primeiro ponto (`stop_sequence=0`) para linhas sem frequência |
@@ -298,8 +298,8 @@ Todos os 10 scripts do repositório foram refatorados para aceitar um argumento 
 |------|-----------|
 | **Entrada** | GTFS público (`gtfs_rio-de-janeiro_pub.zip`) |
 | **Processamento** | 1. Filtra rotas SPPO (route_type=3 ou 700). |
-|  | 2. Remove viagens de exceção/desvio. |
-|  | 3. Calculates extensões geográficas de todos os shapes (EPSG:31983). |
+|  | 2. Remove viagens de exceção/desvio (`service_id == EXCEP` ou `[` no `trip_headsign`). |
+|  | 3. Calcula extensões geográficas de todos os shapes (EPSG:31983). |
 |  | 4. Consolida a maior extensão por (Serviço, Vista, Sentido). |
 | **Saída** | CSV em `resultados/extensoes/extensoes_YYYY-MM-QQQ.csv` |
 | **Dependências** | `pandas`, `geopandas`, `shapely` |
@@ -312,7 +312,7 @@ Todos os 10 scripts do repositório foram refatorados para aceitar um argumento 
 | Item | Descrição |
 |------|-----------|
 | **Entrada** | GTFS em `dados/gtfs/YYYY/rio_YYYY-MM.zip` |
-| **Processamento** | Idêntico ao script 8, mas adaptado para o novo padrão de nomenclatura de arquivos. |
+| **Processamento** | Idêntico ao script 8 (filtra `route_type` 3/700, remove EXCEP/desvio, extensões via GIS EPSG:31983), adaptado para o novo padrão de nomenclatura de arquivos `rio_YYYY-MM.zip`. |
 | **Saída** | CSV em `resultados/extensoes/extensoes_rio_YYYY-MM.csv` |
 
 ---

@@ -22,9 +22,9 @@ if _args.config:
 BASE_DADOS = Path(_config.get("BASE_DADOS", "C:/R_SMTR/dados"))
 BASE_RESULTADOS = Path(_config.get("BASE_RESULTADOS", "C:/R_SMTR/resultados"))
 
-ano_gtfs = _config.get("ano_gtfs", "2026")
+ano_gtfs = _config.get("ano_gtfs", "2030")
 mes_gtfs = _config.get("mes_gtfs", "10")
-estudo_gtfs = _config.get("estudo_gtfs", "02") #ESTUDO, NÃO CONSIDERAR MAIS QUINZENA!!!!
+estudo_gtfs = _config.get("estudo_gtfs", "03") #ESTUDO, NÃO CONSIDERAR MAIS QUINZENA!!!!
 
 # GTFS file path
 end_gtfs = Path(_config.get("end_gtfs", BASE_DADOS / f"gtfs/{ano_gtfs}/gtfs_combi_{ano_gtfs}-{mes_gtfs}-{estudo_gtfs}Q.zip"))
@@ -40,13 +40,13 @@ with zipfile.ZipFile(end_gtfs, 'r') as z:
         trips = pd.read_csv(f)
 
 # Lines to run
-linhas_rodar = _config.get("linhas_rodar", ["SN821"])
+linhas_rodar = _config.get("linhas_rodar", ["007"])
 if isinstance(linhas_rodar, str):
     linhas_rodar = [x.strip() for x in linhas_rodar.split(',') if x.strip()]
 
 # Em vez de apenas linhas específicas, como ["249"], podemos pegar todas as linhas únicas do arquivo trips
 # linhas_rodar = trips['trip_short_name'].unique().tolist()
-services_to_run = _config.get("services_to_run", ["U_REG","S_REG", "D_REG"]) # 
+services_to_run = _config.get("services_to_run", ["U_REG", "S_REG", "D_REG", "F_REG"]) # 
 
 # Process trips first: keep only needed columns and filter by requested lines
 trips_filtered = trips[['trip_id', 'trip_short_name', 'trip_headsign', 'service_id']]

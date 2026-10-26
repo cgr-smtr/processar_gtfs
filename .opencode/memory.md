@@ -5,6 +5,137 @@ Preferência: adicionar entradas no topo, datadas.
 
 ---
 
+## 2026-10-23 — Documentação das atualizações de 7, 8 e 8.1 fechada
+
+- A regra de extensão (2026-10-22, entrada abaixo) já estava em `CHANGELOG.md`,
+  `AGENTS.md` (convenção) e nesta memória; faltavam `README.md` e `CONTEXTO.md`,
+  agora atualizados: README seção 7 (GIS EPSG:31983, máximo por itinerário,
+  sem EXCEP/desvio, sem filtro de `route_type` p/ cobrir BRT 702), seção 8
+  (filtro `EXCEP`/`[` explícito) e seção 8.1 (mesma regra, formato `rio_`);
+  CONTEXTO ganhou a sessão 2026-10-22 completa (regra, diagnóstico, correção,
+  verificação, docs).
+- **Defaults do topo do 7 registrados:** `ano_gtfs` 2026→2030, `estudo_gtfs`
+  02→05, `endereco_gtfs` → `gtfs/2030/0175_gtfs_out_26_1E_ret3.zip` (aba
+  Streamlit continua com `gtfs_combi_2026-10-02Q_RIO.zip`). 8/8.1 com
+  defaults inalterados (2026/01 e `rio_2026-05`). CHANGELOG ganhou entrada
+  2026-10-23 com os defaults e a conclusão da documentação.
+
+---
+
+## 2026-10-22 (3) — Extensões do script 7: causa da divergência com a lista histórica e correção
+
+- **Reclamação:** "extensões no resultado do 7 não batem com o GTFS; programações
+  antigas saíam bem diferentes" (usuário colou a lista histórica Serviço/Vista/
+  Sentido/Extensão, gerada pelo script 8 em GTFS anterior).
+- **Diagnóstico (3 verdades possíveis):**
+  - Lista histórica = **GIS + `route_type∈[3,700]` + sem EXCEP/desvio** = regra do
+    script 8. Reproduzida no 2030-10-03Q: **49/54 exatos, 51/54 ≤1 m** (5 casos
+    1–17 m = versão anterior do GTFS, aceita).
+  - Script 7 antigo = GIS **sem** filtrar EXCEP → `max()` pegava o shape de
+    exceção (006 Ida: regular 8460 vs EXCEP `lv6i` 8866 = +406 m). Diferença
+    gigante vinha daqui, não do método.
+  - GTFS `shape_dist_traveled` fica **~21 m acima** do GIS (0,1% — método de
+    distância do publicador vs EPSG:31983). Usuário escolheu manter o **GIS**
+    (valida o histórico Sigmob) e **arredondar/`astype(int)`** como já era.
+- **Decisão do usuário:** extensão = GIS + **sem EXCEP/desvio** (igual ao
+  histórico), aplicado a **7, 8 e 8.1**; 8/8.1 já tinham o filtro (inalterados).
+- **Correção em `7_lista_partidas.py`:** bloco de extensões agora filtra
+  `service_id != 'EXCEP'` e `trip_headsign` sem `[` numa cópia de `df_trips`
+  (só p/ cálculo da extensão — geração de partidas intacta); merge ganhou
+  `fillna(0).astype(int)`. **Não** filtra `route_type` no 7 (precisa cobrir
+  BRT 702 — 17.566 rows); 8/8.1 filtram `[3,700]` (listagem só-SPPO).
+  Contagem de itinerários: 987 → **876** (grupos que só tinham EXCEP saem).
+- **Verificação:** `partidas_2030-10-03Q.csv` regenerado — 55.321/163.179 linhas
+  (33,9%) com extensão corrigida; 006 Ida 8866→8460, 006 Volta 8906 (inalterada);
+  0 nulas; BRT 702 ok; 54/54 linhas do histórico ≤20 m. Backup do CSV antigo:
+  `partidas_2030-10-03Q_backup_gis_com_excep.csv`.
+- **Outros achados:** GTFS 2030 tem 5 service_ids (U/D/S/F_REG + EXCEP 740
+  trips; sem DESAT); 686 desvios `[`; linha 872 Volta é o único grupo
+  só-desvio (0 rows no CSV). `service_id` com EXCEP é literal `'EXCEP'`.
+- **Ambiente:** rodar scripts com `PYTHONIOENCODING=utf-8` (senão `✓` quebra no
+  console cp1252).
+
+---
+
+## 2026-10-22 (2) — Correção `floor` + OS 191 + migração do cruzamento para `validacao_gtfs`
+
+- **Bug de contagem corrigido** na investigação OS×GTFS: default da `formula`
+  em `investigar_os190_vs_gtfs0174.py:61` trocado de `floor_mais_1` para
+  **`floor`** — `floor_mais_1` duplicava as fronteiras entre bandas contíguas
+  (fim de uma = início da próxima), inflando células e divergências. Convenção
+  correta = script 7 (`while current_time < ed`, `7_lista_partidas.py:184`);
+  para bandas **não divisíveis** (293 no 0174, 15 no gtfs_combi) `ceil` é o
+  equivalente exato do while-loop. Relatórios OS190 regenerados: células
+  exatas 1.585 → **3.321**, divergências 4.053 → **1.671**; serviço 007 com
+  todas as células `dif=0`.
+- **Rodada OS 191** (utf-8-sig; mesmo cruzamento, prefixo `os191_vs_gtfs0174`):
+  364 serviços com partidas de domingo — **100% `EM_D_REG`** (0 ausentes;
+  contraste com OS 190: 17 sem domingo + 12 só EXCEP); 5.573 células →
+  **5.304 exatas (95,2%)**, 269 divergentes (todas OS>GTFS, **+270**
+  partidas, 85 serviços, quase todas dif=1, máx. 2 — linha 804 Volta 18h-21h),
+  25 células sem banda GTFS na faixa (819:3, LECD157:2, SV917:2…).
+  OS191 vs OS190 (Domingo): 24 serviços novos; células 5.294 → 5.573.
+- **Item novo no projeto irmão** `C:\github_repositories\validacao_gtfs`
+  (agora com git): script de investigação generalizado virou
+  **`2_comparar_os_gtfs.py`** — compara conteúdo de partidas OS × GTFS para
+  **todos os tipos de dia** (Dia Útil→`U_REG`, Sábado→`S_REG`, Domingo→`D_REG`,
+  PF→`F_REG`), **sem hardcode**: entradas default `OS.csv`/`GTFS.zip` na raiz +
+  auto-detecção; sep/encoding/formato de coluna da OS auto-detectados (os 3
+  formatos: `00:00-01:00`, `00h à 01h`, Resumo por Dia). Reexpansão `floor` +
+  timetable (primeira saída em `stop_times.txt`). Saídas `relatorio_<prefixo>_*
+  .csv` + `resumo_<prefixo>.txt`; `exit 1` se serviços da OS faltam no GTFS
+  (`fail_se_ausente`). Validado: reproduz exatamente a investigação OS191×0174.
+- **Também no validacao_gtfs:** `validar_gtfs.py` **renomeado** para
+  `1_validar_gtfs.py` (convenção `0_`/`1_`/`2_`; feito fora da sessão) e o
+  wrapper `0_validar_gtfs_entrada.py` estava **quebrado**
+  (`ModuleNotFoundError`) — corrigido com
+  `importlib.import_module("1_validar_gtfs")`. README/CHANGELOG (v4.0.0)/
+  `memory.md` do validacao_gtfs atualizados; `AGENTS.md`, `.gitignore`
+  (padrões os191) e esta memória atualizados aqui.
+
+---
+
+## 2026-10-22 — Investigação OS 190 (Eleição 2º turno) × GTFS 0174: os "351 serviços não estão no D_REG"
+
+- **Reclamação recebida:** "351 serviços estão na OS e não estão no GTFS
+  (D_REG)". Origem: **testes dbt pós-carga**
+  (`ordem_servico_trips_shapes_gtfs`, `data_versao_gtfs=2026-10-25`), que
+  validam 1:1 a chave `feed_start_date + tipo_os + tipo_dia + servico +
+  faixa_horaria_inicio` entre `ordem_servico_faixa_horaria` (OS) e a tabela
+  derivada do GTFS.
+- **Achado central:** **351 = nº de serviços da OS com partidas de domingo**
+  (não há 351 serviços faltando). A OS 190 tem 408 serviços/765 linhas e só
+  preenche colunas de Domingo (34.399 partidas; DU/Sáb/PF zerados).
+  Cruzamento independente (`codigos_py/investigar_os190_vs_gtfs0174.py`):
+  - **322/351 constam em D_REG** (392 linhas no GTFS 0174, 8.787 trips, todos
+    com 1 linha em `frequencies.txt` → partidas reexpandidas);
+  - **29 ausentes** (1.288 partidas OS): **17 sem nenhum domingo no GTFS**
+    (`SVA685` 180, `899` 178, `SR378` 111, `SVB901` 96, `SR399` 70, `829` 66,
+    `LECD152`, `844`, `SP810`, `SP801`, `SR362`, `SPB326`, `SP635`, `SPA483`,
+    `SP404`, `SP485`, `SPB483`) e **12 só com EXCEP de evento** (headsigns
+    `[reveillon]/[rock_in_rio]/[carnaval]/[desvios]`, stop_times em 00:00:00,
+    portanto templates — `805`, `961`, `SR397`, `SR388`, `SPA613`, `SP324`,
+    `SR328`, `SP803`, `SPB550`, `SP328`, `SPA550`, `SP766`);
+  - 51 linhas de D_REG não aparecem na OS; 19 têm D_REG mas zero na OS.
+- **Por que o dbt marcou 351:** a chave composta falha sistematicamente —
+  candidatos: `feed_start_date` do `feed_info.txt` do 0174 é **20240101** (lado
+  dbt/OS deve usar a versão **2026-10-25**), `tipo_os` (especial) e formato de
+  `faixa_horaria_inicio` (bloco `06h-09h` na OS × horário exato da banda no
+  GTFS). Se a chave não casa por construção, **todas** as linhas da OS aparecem
+  ausentes — inclusive as 322 presentes. Ação sugerida: validar a montagem de
+  `ordem_servico_trips_shapes_gtfs` antes de tratar como gap de oferta.
+- **Divergências reais (para os 322 presentes, por célula svc×sentido×faixa) —
+  números regenerados após a correção `floor` (ver entrada 2026-10-22 (2)):
+  1.671 células divergentes no total do cruzamento (1.226 OS>GTFS, 445
+  GTFS>OS), 3.321 exatas. Convenção de contagem das frequencies: `floor` =
+  `while t < ed` do script 7 (config `formula`: `floor`/`floor_mais_1`/`ceil`).
+- **Saídas (gitignoradas, na raiz):** `relatorio_os190_vs_gtfs0174_servicos.csv`,
+  `relatorio_os190_vs_gtfs0174_celulas.csv`, `resumo_os190_vs_gtfs0174.txt`.
+  `AGENTS.md` e `.gitignore` atualizados. **Não mexemos no GTFS** (escopo:
+  investigação + relatório).
+
+---
+
 ## 2026-10-20 — `trip_id` vazio nos quadros é por design (Sigmob); "decimais" no 7 = segundos do GPS
 
 - **Confirmado pelo usuário:** a coluna `trip_id` dos CSVs de QH sai **vazio por

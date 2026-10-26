@@ -204,3 +204,50 @@ atualizada (README, CHANGELOG, AGENTS, memória).
   tabela Partida|Horário|Intervalo, partidas expandidas). Gate duro antes de
   gravar qualquer arquivo.
 - **Pendência:** sem aba Streamlit — execução via CLI/`--config`.
+
+---
+
+# CONTEXTO - Sessão de Desenvolvimento 2026-10-22
+
+## Resumo
+
+Unificação da regra de **extensão de linha** nos scripts 7, 8 e 8.1 após a
+reclamação "extensões do resultado do 7 não batem com a lista histórica do
+Sigmob". Diagnóstico + correção no script 7 e verificação de que 8/8.1 já
+estavam conformes.
+
+## Regra única de extensão (7, 8, 8.1)
+
+- Extensão = comprimento **GIS** do shape (LineString → EPSG:31983 →
+  `astype(int)`), **máximo por itinerário** (linha × sentido), **excluindo
+  trips `EXCEP` e desvios** (`[` no `trip_headsign`).
+- Sem esse filtro o `max()` pegava o shape de exceção e inflava a extensão
+  (ex.: 006 Ida: regular 8460 m vs EXCEP 8866 m = +406 m).
+- A "verdade do GTFS" (`shape_dist_traveled`) fica ~21 m (0,1%) acima do GIS;
+  o usuário validou o **GIS** por ser o valor do histórico Sigmob.
+
+## O que mudou
+
+- **`7_lista_partidas.py`:** bloco de extensões agora filtra
+  `service_id != 'EXCEP'` e headsign sem `[` numa cópia de `df_trips` (só
+  para o cálculo da extensão — geração de partidas intacta); merge da extensão
+  com `fillna(0).astype(int)`. **Não** filtra `route_type` (precisa cobrir o
+  BRT 702); itinerários 987 → 876 (grupos só-EXCEP saem).
+- **`8_gerar_extensoes.py` e `8.1_gerar_extensoes_rio.py`:** **inalterados** —
+  já filtravam `route_type ∈ [3,700]` e `EXCEP`/desvio; verificados como
+  conformes com a regra única.
+- **Defaults do topo do 7** (mesma rodada): `ano_gtfs` 2026 → 2030,
+  `estudo_gtfs` 02 → 05, `endereco_gtfs` → `gtfs/2030/0175_gtfs_out_26_1E_ret3.zip`.
+
+## Verificação
+
+- `partidas_2030-10-03Q.csv` regenerado: 55.321/163.179 linhas (33,9%) com
+  extensão corrigida; 006 Ida 8866 → 8460; 0 extensões nulas; BRT 702 intacto
+  (17.566 linhas); conferência contra a lista histórica: 54/54 linhas ≤ 20 m
+  (5 casos de 1–17 m = versão anterior do GTFS, aceita).
+
+## Documentação atualizada
+
+- `CHANGELOG.md` (entrada 2026-10-22 + defaults em 2026-10-23), `AGENTS.md`
+  (convenção "Extensão de linha (7, 8, 8.1)"), `.opencode/memory.md`
+  (detalhamento completo) e `README.md` (seções 7, 8 e 8.1).

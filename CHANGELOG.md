@@ -4,6 +4,22 @@ Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 
 O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
+## [Não lançado] - 2026-10-23
+
+### Alterado
+- `codigos_py/7_lista_partidas.py` — defaults do topo atualizados para o estudo corrente: `ano_gtfs` 2026 → **2030**, `estudo_gtfs` 02 → **05** e `endereco_gtfs` → **`gtfs/2030/0175_gtfs_out_26_1E_ret3.zip`** (defaults dos scripts 8/8.1 inalterados).
+- Documentação da regra de extensão (7, 8 e 8.1) concluída: `README.md` (seção 7 detalha o cálculo GIS com exclusão de `EXCEP`/desvios e a não filtragem de `route_type`; seções 8 e 8.1 detalham os filtros) e `CONTEXTO.md` (sessão 2026-10-22 com diagnóstico, correção e verificação).
+
+## [Não lançado] - 2026-10-22
+
+### Adicionado
+- Novo script `codigos_py/investigar_os190_vs_gtfs0174.py`: investigação da reclamação "351 serviços da OS não estão no GTFS 0174 (D_REG)" (testes dbt pós-carga) — cruza OS × `D_REG` por serviço/sentido/faixa horária, classifica serviços (`EM_D_REG`/`SO_EXCEP_EVENTO`/`SEM_DOMINGO_NO_GTFS`) e gera `relatorio_*_servicos.csv`, `relatorio_*_celulas.csv` e `resumo_*.txt` na raiz (gitignorados). Achado: 351 = serviços da OS com partidas de domingo; na OS 191 (utf-8-sig) todos os 364 serviços constam em `D_REG`, com 95,2% das células exatas (269 divergentes, +270 partidas).
+
+### Alterado
+- `codigos_py/7_lista_partidas.py` — cálculo de extensões agora **exclui trips `EXCEP` e desvios** (`[` no headsign) antes do `max()` por itinerário, alinhando o script 7 à regra dos scripts 8/8.1 e à lista histórica de extensões do Sigmob (ex.: 006 Ida: 8866 → **8460**). Antes o `max()` pegava o shape de exceção e inflava a extensão em até ~400 m. Merge da extensão ganhou `fillna(0).astype(int)` (grupos que só tinham EXCEP ficariam NaN — verificado: 0 rows afetados). GTFS 2030-10-03Q regenerado: 33,9% das 163.179 linhas mudaram (55.321); conferência contra a lista histórica: 49/54 exatos, todas ≤20 m (5 casos = versão anterior do GTFS, aceita pelo usuário); BRT 702 intacto (17.566 linhas, 0 nulas). Scripts 8/8.1 inalterados (já filtram EXCEP/desvio).
+- `investigar_os190_vs_gtfs0174.py`: default da `formula` de `floor_mais_1` para **`floor`** — o `+1` duplicava as fronteiras entre bandas contíguas de `frequencies.txt` (fim de uma = início da próxima). Convenção alinhada ao script 7 (`while current_time < ed`, `7_lista_partidas.py:184`); relatórios da OS 190 regenerados (células exatas 1.585 → 3.321; divergências 4.053 → 1.671).
+- Migração para o projeto irmão `C:\github_repositories\validacao_gtfs` (v4.0.0): o cruzamento virou o item de pipeline **`2_comparar_os_gtfs.py`** (todos os tipos de dia, entradas `OS.csv`/`GTFS.zip` sem hardcode); `validar_gtfs.py` renomeado para `1_validar_gtfs.py` e wrapper `0_` corrigido. Detalhes no `CHANGELOG.md`/`memory.md` do próprio `validacao_gtfs`.
+
 ## [Não lançado] - 2026-10-19
 
 ### Adicionado
