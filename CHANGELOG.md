@@ -4,6 +4,12 @@ Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 
 O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
+## [Não lançado] - 2026-10-26
+
+### Adicionado
+- Novo script `codigos_py/comparar_duas_os.py`: compara **duas OS** no formato "Resumo por Dia" (colunas `partidas HH:MM-HH:MM - <Tipo de Dia>`) por **(Serviço, Sentido, TipoDia, Faixa)**, sem depender de GTFS — delta = A − B (ausente = 0) e status `IGUAL`/`A_MAIOR`/`B_MAIOR`/`SÓ_A`/`SÓ_B`. `--config` aceita `end_os_a`, `end_os_b`, `prefixo`, `tipos_dia`, `pasta_saida`, `encoding_os` (default `utf-8-sig` com fallback latin-1). Saídas na raiz (gitignoradas): `relatorio_<prefixo>_celulas.csv` (grade completa), `relatorio_<prefixo>_servicos.csv` (totais por par/tipo de dia + extensão A×B + flag de vista divergente) e `resumo_<prefixo>.txt`. Integridade conferida antes de gravar (soma do melt = soma das colunas dos CSVs; células = pares × faixas × tipos; (Serviço, Sentido) único e completo). Sem aba Streamlit (CLI/`--config`).
+- Primeira execução — **PO 1ºEst Novembro × PO 2ºEst Outubro COMPLETO ret** (prefixo `po1est_nov_vs_po2est_out`): 45.360 células (810 pares × 56), 44.725 exatas, **635 divergentes**, delta total **−190** partidas (A−B). Divergência concentrada em **Ponto Facultativo** (−574: 313 células `B_MAIOR` × 8 `A_MAIOR`); DU/Sáb/Dom com A levemente maior (+146/+133/+105), puxado pelos serviços **634** e **SN634** (Bananal–Saens Peña) que só existem na OS de Novembro (224 células `SÓ_A`). Achados auxiliares: 804 (Ida/Volta com vista e extensões aparentemente **invertidos** entre os estudos), 892 Circular com vista diferente (`São Benedito - Santa Cruz` × `Santa Cruz - Vitor Dumas`), 41 pares com extensão divergente (máx. SVA685 Volta −1.642 m).
+
 ## [Não lançado] - 2026-10-23
 
 ### Alterado

@@ -45,7 +45,11 @@ por aplicação Streamlit (`src/app.py`). Contém versões antigas em R (`codigo
   gera CSVs + resumo na raiz; fórmula default `floor` (bug `floor_mais_1`
   duplicava fronteiras de bandas contíguas — corrigido 2026-10-22); versão
   generalizada virou `2_comparar_os_gtfs.py` no projeto irmão `validacao_gtfs`
-  (todos os tipos de dia, sem hardcode)]).
+  (todos os tipos de dia, sem hardcode)],
+  `comparar_duas_os` [compara **duas OS** "Resumo por Dia" entre si, por
+  linha/sentido/tipo de dia/faixa — delta A−B, status IGUAL/A_MAIOR/B_MAIOR/
+  SÓ_A/SÓ_B, sem GTFS; CSVs + resumo na raiz; defaults: PO 1ºEst Nov ×
+  2ºEst Out 2026; sem aba Streamlit]).
 - Projeto irmão `C:\github_repositories\validacao_gtfs` (independente, com git):
   itens numerados `0_validar_gtfs_entrada.py` (pró-pipeline), `1_validar_gtfs.py`
   (antes `validar_gtfs.py`, renomeado 2026-10-22) e `2_comparar_os_gtfs.py`

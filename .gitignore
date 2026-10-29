@@ -38,6 +38,13 @@ resumo_os190_vs_gtfs0174.txt
 relatorio_os191_vs_gtfs0174_*.csv
 resumo_os191_vs_gtfs0174.txt
 
+# Relatórios de comparação de duas OS (PO 1ºEst Nov x 2ºEst Out) gerados na raiz
+relatorio_po1est_nov_vs_po2est_out_*.csv
+resumo_po1est_nov_vs_po2est_out.txt
+
+# Dados de entrada de investigação (OSs PO na raiz)
+PO_*.csv
+
 # Pasta de validação: ignorar bases e relatórios gerados
 validacao/*.zip
 validacao/*.csv

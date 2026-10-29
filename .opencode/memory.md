@@ -5,6 +5,43 @@ Preferência: adicionar entradas no topo, datadas.
 
 ---
 
+## 2026-10-26 — Comparação OS × OS (PO 1ºEst Nov × PO 2ºEst Out) via `comparar_duas_os.py`
+
+- Pedido: comparar partidas entre duas OS cujos CSVs estavam na raiz com prefixo
+  `PO_` (formato "Resumo por Dia", `partidas HH:MM-HH:MM - <Tipo>`), relatório
+  **por linha, sentido e faixa**. Decisões do usuário: delta = **1ºEst Nov −
+  2ºEst Out**, células em **grade completa**, entrega em **CSV utf-8-sig**.
+- Dados: ambos utf-8-sig, 117 colunas idênticas (5 id + **4 tipos de dia**
+  DU/Sáb/Dom/**Ponto Facultativo** × 14 faixas × partidas+km); chaves
+  (Serviço, Sentido) únicas; partidas todas inteiras. A (1ºEst Nov): 810 pares /
+  113.568 partidas; B (2ºEst Out ret): 806 pares / 113.758. Só em A: **634 e
+  SN634** (Bananal–Saens Peña). Não havia ferramenta OS×OS (o investigar_* e o
+  `2_comparar_os_gtfs.py` do validacao_gtfs são OS×GTFS com reexpansão —
+  desnecessária aqui, pois as OSs já trazem contagens por faixa).
+- **`codigos_py/comparar_duas_os.py`** (one-off, `--config` + defaults dos POs;
+  sem aba Streamlit): melt → join A×B full outer por
+  (Serviço, Sentido, TipoDia, Faixa) → delta/status (`IGUAL/A_MAIOR/B_MAIOR/
+  SÓ_A/SÓ_B`; SÓ_* = par presente só num dos arquivos). Saídas na raiz
+  (gitignoradas com `relatorio_po*`/`resumo_po*` e `PO_*.csv`): `relatorio_
+  po1est_nov_vs_po2est_out_celulas.csv` (45.360), `_servicos.csv` (3.240; totais
+  por par/tipo + Extensão A×B + flag vista) e `resumo_*.txt`. Validações: melt =
+  soma dos CSVs (113.568/113.758), células = 810×56, 634/SN634 = SÓ_A em 224,
+  006 inteiro IGUAL, célula divergente conferida linha-a-linha na origem.
+- **Resultado:** 44.725 exatas / **635 divergentes**; delta total **−190**.
+  Por tipo: DU +146, Sáb +133, Dom +105, **PF −574** (PF concentra 321 das 358
+  células B_MAIOR — quase tudo B maior no facultativo). Sem os 4 pares só-A,
+  A_MAIOR=53 vs B_MAIOR=358.
+- **Achados auxiliares:** 804 (Ida/Volta com vista **invertida** entre A e B e
+  extensões trocadas: A Ida 25.551 × B Ida 23.955...); 892 Circular com vista
+  totalmente diferente (`São Benedito - Santa Cruz` × `Santa Cruz - Vitor
+  Dumas`); 869 Circular com vista invertida; **41 pares** com extensão
+  divergente (máx. SVA685 Volta −1.642 m; SN825 ±~1.4k na troca Ida/Volta).
+- Docs: CHANGELOG 2026-10-26, AGENTS (entry `comparar_duas_os`), `.gitignore`
+  (relatórios + `PO_*.csv`). README não recebe seção (one-off de investigação,
+  precedente do `investigar_os190_*`).
+
+---
+
 ## 2026-10-23 — Documentação das atualizações de 7, 8 e 8.1 fechada
 
 - A regra de extensão (2026-10-22, entrada abaixo) já estava em `CHANGELOG.md`,
