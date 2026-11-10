@@ -42,6 +42,10 @@ resumo_os191_vs_gtfs0174.txt
 relatorio_po1est_nov_vs_po2est_out_*.csv
 resumo_po1est_nov_vs_po2est_out.txt
 
+# Relatórios de comparação de dois GTFS (script 11.2) gerados na raiz
+relatorio_gtfs_*_*.csv
+resumo_gtfs_*.txt
+
 # Dados de entrada de investigação (OSs PO na raiz)
 PO_*.csv
 

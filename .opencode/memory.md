@@ -5,6 +5,68 @@ Preferência: adicionar entradas no topo, datadas.
 
 ---
 
+## 2026-11-10 — Criação do comparador GTFS × GTFS e transplante de 11 e 11.2 para `validacao_gtfs`
+
+- Pedido: criar o comparador de dois GTFS (inicialmente `11.2`) a exemplo do
+  comparador de duas OS (`11`) e, em seguida, transplantar os dois scripts para
+  o repositório irmão `C:\github_repositories\validacao_gtfs`, renumerando-os.
+- Decisões confirmadas com o usuário:
+  1. **Escopo e formato de saída:** mesmo padrão do comparador de duas OS —
+     partidas por `(Serviço, Sentido, TipoDia, Faixa)` na grade completa de 14
+     faixas + `Vista`, `Consórcio` e `Extensão` GIS nos relatórios
+     `relatorio_<prefixo>_celulas.csv`, `relatorio_<prefixo>_servicos.csv` e
+     `resumo_<prefixo>.txt`.
+  2. **Regra de extração de cada GTFS:** mesma regra do script 7 (`7_lista_partidas.py`) —
+     tipos `du`/`sab`/`dom`/`pf` (`U`/`S`/`D`/`F`), excluindo `route_type == 200`
+     (frescões), `EXCEP`, `DESAT` e `trip_id_fantasma.txt`; expansão de
+     `frequencies.txt` com `while current_time < end_time` + viagens regulares
+     pelo 1º ponto (`stop_sequence == '0'`) de `stop_times.txt`; extensão GIS
+     em `EPSG:31983` excluindo `EXCEP` e desvios (`[` no headsign).
+  3. **Renumeração no `validacao_gtfs`:** `11_comparar_duas_os.py` →
+     **`3_comparar_duas_os.py`** e `11.2_comparar_dois_gtfs.py` →
+     **`4_comparar_dois_gtfs.py`**, com `_REPO_RAIZ` ajustado para a raiz de
+     `validacao_gtfs` (`Path(__file__).resolve().parent`) e flags diretas de CLI
+     (`--os-a`/`--os-b` e `--gtfs-a`/`--gtfs-b`).
+  4. **Limpeza em `processar_gtfs`:** removidos `codigos_py/11_comparar_duas_os.py`,
+     `codigos_py/11.1_investigar_os190_vs_gtfs0174.py`, `codigos_py/11.2_comparar_dois_gtfs.py`
+     e a Aba 11 (`src/tabs/tab_11_comparar_os.py` + `src/app.py`), seguindo o
+     precedente da migração do script 0.
+- Verificação: validado com GTFS sintéticos no script `4_comparar_dois_gtfs.py`
+  e `compileall` em `processar_gtfs` e `validacao_gtfs`.
+- Docs atualizados nos dois repositórios: `AGENTS.md`, `CHANGELOG.md`,
+  `CONTEXTO.md`, `README.md` e `.opencode/memory.md` (em `processar_gtfs`), e
+  `README.md`, `CHANGELOG.md` (v4.1.0), `memory.md` e `requirements.txt` (em
+  `validacao_gtfs`).
+
+---
+
+## 2026-11-03 (2) — Scripts faltantes integrados ao app principal
+
+- Pedido: adicionar ao `src/app.py` os scripts de `codigos_py/` que ainda não
+  tinham aba, **exceto `11.1`**. Decisões do usuário: agrupar por família
+  (`1.1`–`1.4` na aba 1; `7.1`/`7.2` na aba 7; `11` em aba nova) e **não**
+  incluir `3_desvios_nao-utilizar.py` (descontinuado, depende de `gspread` e
+  credenciais).
+- **Aba 1:** modos `1`, `1.1`, `1.2`, `1.3`, `1.3.1`, `1.4`. Campos e defaults
+  espelham o `--config` de cada script; campos opcionais vazios são omitidos
+  para o script aplicar seu próprio default (`nome_excel`, `tipo_dia`,
+  `pasta_saida`).
+- **Aba 7:** modos `7`, `7.1`, `7.2`.
+- **Aba 11:** `src/tabs/tab_11_comparar_os.py` com OS A/B, prefixo, pasta de
+  saída, `tipos_dia` e `encoding_os`.
+- **7.2:** era o único sem CLI e executava no import; ganhou `--config`
+  (`caminho_du`, `caminho_dom`, `caminho_saida`) e `if __name__ == "__main__"`.
+  A lógica interna não mudou. Teste com CSVs sintéticos: saída idêntica byte a
+  byte entre execução isolada e execução com config.
+- **Verificação:** `python -m compileall -q src codigos_py/7.2_combinador_partidas.py`;
+  17 testes unitários OK; smoke `AppTest` percorrendo todos os modos novos e a
+  aba 11 sem exceções; captura dos configs confirmou os nomes de script e chaves
+  esperadas.
+- Docs atualizados: `README.md` (notas de aba e seção 11), `CHANGELOG.md`,
+  `AGENTS.md`, `CONTEXTO.md` e esta memória.
+
+---
+
 ## 2026-10-26 — Comparação OS × OS (PO 1ºEst Nov × PO 2ºEst Out) via `comparar_duas_os.py`
 
 - Pedido: comparar partidas entre duas OS cujos CSVs estavam na raiz com prefixo
@@ -520,3 +582,42 @@ Preferência: adicionar entradas no topo, datadas.
   Excel 429 abas. Rotas sem bandas na base esperada (aviso): `SP766`, `899`,
   `SV899`, `LECD126`. Amostras conferidas (249 e 821) batem com o GTFS.
 - Documentação: nova seção 1.4 no `README.md` e entrada em `AGENTS.md`.
+
+---
+
+## 2026-11-03 — Conversão do Shiny `1.2 app_format_qh.R` para Streamlit
+
+- Criado `src/qh_format.py` com a lógica pura do app: conversão
+  `HH:MM:SS` ↔ segundos, normalização de meia-noite, parsing da programação,
+  leitura do GTFS ZIP, expansão de `frequencies`, tabelas de exibição,
+  bandas de QH, comparação GTFS × proposta, resumo por faixa e cores por hora.
+- Criado `src/app_format_qh.py`: app standalone com upload de GTFS, seleção
+  em cascata (linha → sentido → calendário → destino), quatro colunas
+  (programação colada, GTFS, proposta e comparação), resumo por faixa e
+  download do QH em CSV.
+- Criados `tests/test_qh_format.py` e `tests/__init__.py` — **17 testes OK**
+  (`python -m unittest discover -s tests -t . -v`).
+- Decisões/correções: nome sem `1.2` para evitar conflito com
+  `1.2_combinar_quadros_horarios.py`; bandas agrupam headways consecutivos
+  iguais (não por faixa); última partida herda o headway anterior; comparação
+  replica o pareamento do R pela menor diferença com deduplicação e não
+  pareados; CSV com `QUOTE_MINIMAL`; `trip_id` vazio por design.
+- Ajustes para Streamlit 1.60: `width="stretch"` no lugar de
+  `use_container_width`; colunas `Intervalo` convertidas para texto antes do
+  Styler para evitar warnings de serialização Arrow.
+- Legibilidade (feedback do usuário): as células coloridas das faixas agora
+  usam também `color: #1F1F1F` (texto escuro), preservando a mesma paleta de
+  cores — antes o texto branco do tema escuro ficava ilegível sobre fundos
+  claros.
+- Correção (feedback do usuário): o campo de destino mantinha as opções da
+  linha/sentido anterior ao trocar o recorte. Os seletores agora usam chaves
+  dinâmicas com hash do GTFS + linha + sentido (`fmt_direction::...`,
+  `fmt_service::...`, `fmt_headsign::...`), forçando o Streamlit a recriar o
+  widget e recarregar as opções. Testado no `AppTest` trocando linha e sentido.
+- Incidente: um `Set-Content -Encoding UTF8` no PowerShell 5.1 corrompeu os
+  acentos de `src/app_format_qh.py` (mojibake). O arquivo foi reescrito com
+  UTF-8 limpo; evitar `Set-Content` para editar fontes com acentos.
+- Smoke test com `streamlit.testing.v1.AppTest` + GTFS sintético: upload,
+  programação válida, 4 dataframes, sem exceções e download disponível.
+- Documentação atualizada: `README.md` (nova seção do app), `CHANGELOG.md`,
+  `AGENTS.md` e `CONTEXTO.md`.

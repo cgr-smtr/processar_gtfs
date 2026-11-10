@@ -19,8 +19,17 @@ python -m streamlit run src/app.py
 ### Como Funciona
 A interface possui uma barra lateral (Sidebar) para configuração de variáveis globais como `BASE_DADOS`, ano, mês e quinzena/estudo. O menu principal está dividido em abas, agrupando os scripts por finalidade (por exemplo, todos os scripts de "Juntar GTFS" na aba 5). O usuário pode fornecer parâmetros via interface (campos de texto ou upload de arquivos) e o script executará em segundo plano, com os logs (stdout) sendo exibidos em tempo real na tela.
 
+Os scripts de QH `1.1`, `1.2`, `1.3` e `1.3.1` e `1.4` ficam na **aba 1** (seletor de modo); `7.1` e `7.2` ficam na **aba 7**; e a comparação de duas OS (`11`) tem aba própria.
+
+### App standalone de Análise de QH
+Além da interface principal do pipeline, o app de formatação/análise de quadros horários pode ser executado separadamente:
+```bash
+python -m streamlit run src/app_format_qh.py
+```
+Ele compara uma programação prevista colada pelo usuário com as partidas do GTFS e exporta o QH no formato do Script 1.
+
 ### Execução via CLI (`--config`)
-Todos os 10 scripts do repositório foram refatorados para aceitar um argumento dinâmico `--config` apontando para um JSON temporário gerado pela interface com todos os parâmetros a serem aplicados. Caso nenhum `--config` seja passado (como na execução clássica pelo terminal), os scripts mantêm **retrocompatibilidade** e usam as variáveis _hardcoded_ definidas no topo de cada arquivo Python.
+Os scripts do repositório aceitam um argumento dinâmico `--config` apontando para um JSON temporário gerado pela interface com todos os parâmetros a serem aplicados. Caso nenhum `--config` seja passado (como na execução clássica pelo terminal), os scripts mantêm **retrocompatibilidade** e usam as variáveis _hardcoded_ definidas no topo de cada arquivo Python.
 
 ---
 
@@ -48,6 +57,8 @@ Todos os 10 scripts do repositório foram refatorados para aceitar um argumento 
 | **Saída** | Arquivos CSV sanitizados por combinação em `resultados/quadro_horario_extraido/YYYY/MM/qh_partidas_por_linha/QQ/` com colunas: `ordem_partida`, `trip_short_name`, `trip_headsign`, `service_id`, `direction_id`, `departure_time`, `intervalo_min`, `trip_id` |
 | **Dependências** | `pandas`, `zipfile`, `re`, `pathlib`, `json`, `argparse` |
 
+> Disponível na **aba 1 → modo 1.1** do app principal.
+
 ---
 
 ## 1️⃣.2️⃣ `1.2_combinar_quadros_horarios.py`
@@ -60,6 +71,23 @@ Todos os 10 scripts do repositório foram refatorados para aceitar um argumento 
 | **Processamento** | 1. Mantém faixas originais do serviço de destino antes de `hora_inicio` e após `hora_fim`, ajustando bordas que cruzam os limites.<br>2. Importa faixas do serviço de origem na janela `[hora_inicio, hora_fim)`, clipando nas bordas.<br>3. Se a linha não tiver destino original, cria o quadro contendo a faixa importada.<br>4. Ordena cronologicamente por `start_time`. |
 | **Saída** | Arquivos CSV no formato do Script 1 em `resultados/quadro_horario_extraido/YYYY/MM/qh_por_linha_combinado/QQ/` com colunas: `trip_id`, `trip_headsign`, `trip_short_name`, `start_time`, `end_time`, `headway_secs` |
 | **Dependências** | `pandas`, `pathlib`, `re`, `json`, `argparse` |
+
+> Disponível na **aba 1 → modo 1.2** do app principal.
+
+---
+
+## 1️⃣.2️⃣.1️⃣ `src/app_format_qh.py`
+**Objetivo:** Versão Python (Streamlit) do Shiny `1.2 app_format_qh.R` para **analisar e formatar quadros horários** interativamente: comparar a programação prevista colada pelo usuário com as partidas do GTFS e exportar o QH.
+
+| Item | Descrição |
+|------|-----------|
+| **Entrada** | GTFS ZIP (upload na barra lateral) + programação prevista em texto (`HH:MM:SS`, uma partida por linha) |
+| **Filtros** | Linha, sentido, calendário e destino, em cascata a partir de `routes.txt`/`trips.txt` |
+| **Processamento** | 1. Expande as frequências do GTFS para o recorte selecionado.<br>2. Mostra as tabelas GTFS e Proposta com destaque de cor por hora.<br>3. Compara as partidas (pareamento pela menor diferença; partidas sem par aparecem como "Nova").<br>4. Resume a contagem por faixa horária (`00:00-00:59` … `29:00-29:59`).<br>5. Gera as bandas de QH a partir das partidas propostas (headways consecutivos iguais; a última partida herda o headway anterior). |
+| **Saída** | Download do QH em CSV com as colunas `trip_id` (vazio), `trip_headsign`, `trip_short_name`, `start_time`, `end_time`, `headway_secs` |
+| **Módulos** | `src/app_format_qh.py` (UI) e `src/qh_format.py` (lógica pura testável) |
+| **Testes** | `python -m unittest discover -s tests -t . -v` (17 testes) |
+| **Dependências** | `streamlit`, `pandas`, `numpy` |
 
 ---
 
@@ -74,8 +102,7 @@ Todos os 10 scripts do repositório foram refatorados para aceitar um argumento 
 | **Saída** | (1) Um CSV por quadro no formato idêntico ao Script 1 (`trip_id` vazio) em `resultados/quadro_horario_extraido/YYYY/MM/qh_por_linha_partidas/QQ/` com colunas: `trip_id`, `trip_headsign`, `trip_short_name`, `start_time`, `end_time`, `headway_secs`; (2) um Excel `quadros_partidas_{service_id}.xlsx` com **uma aba por linha** (servico) e **um bloco por quadro** (cabeçalho `Linha`/`Trip headsign`/`Tipo dia` + tabela `Partida`\|`Horário`\|`Intervalo`, partidas expandidas em HH:MM:SS); (3) relatórios `relatorio_bandas.csv` e `_resumo.txt`. |
 | **Dependências** | `pandas`, `openpyxl`, `pathlib`, `re`, `json`, `argparse` |
 
-> [!NOTE]
-> Sem aba Streamlit ainda — executar via CLI: `python codigos_py/1.3_qh_a_partir_de_partidas.py [--config config.json]`.
+> Disponível na **aba 1 → modo 1.3** do app principal. Também pode ser executado via CLI: `python codigos_py/1.3_qh_a_partir_de_partidas.py [--config config.json]`.
 
 ---
 
@@ -90,8 +117,7 @@ Todos os 10 scripts do repositório foram refatorados para aceitar um argumento 
 | **Saída** | `relatorio_conferencia_partidas.csv` (uma linha por célula + anomalias) e `_conferencia_resumo.txt` na pasta conferida; exit code 0 = tudo OK, 1 = anomalia |
 | **Dependências** | `pandas`, `openpyxl`, `pathlib`, `re`, `json`, `argparse` |
 
-> [!NOTE]
-> Sem aba Streamlit ainda — executar via CLI: `python codigos_py/1.3.1_conferir_partidas_geradas.py --config config.json`.
+> Disponível na **aba 1 → modo 1.3.1** do app principal. Também pode ser executado via CLI: `python codigos_py/1.3.1_conferir_partidas_geradas.py --config config.json`.
 
 ---
 
@@ -106,8 +132,7 @@ Todos os 10 scripts do repositório foram refatorados para aceitar um argumento 
 | **Saída** | Pasta própria `resultados/quadro_horario_extraido/YYYY/MM/qh_por_linha_pf_gtfs/QQ/`: (1) CSVs `horarios_{linha}_{headsign}_F_REG.csv` no formato do Script 1 (`trip_id` vazio); (2) Excel `quadros_partidas_F_REG.xlsx` (uma aba por linha, bloco por quadro com `Partida`\|`Horário`\|`Intervalo`); (3) `relatorio_bandas.csv` (com `service_id_origem` p/ auditoria) e `_resumo.txt` |
 | **Dependências** | `pandas`, `openpyxl`, `pathlib`, `zipfile`, `re`, `json`, `math`, `argparse` |
 
-> [!NOTE]
-> Sem aba Streamlit — executar via CLI: `python codigos_py/1.4_qh_pf_a_partir_do_gtfs.py [--config config.json]`.
+> Disponível na **aba 1 → modo 1.4** do app principal. Também pode ser executado via CLI: `python codigos_py/1.4_qh_pf_a_partir_do_gtfs.py [--config config.json]`.
 
 ---
 
@@ -277,6 +302,8 @@ Todos os 10 scripts do repositório foram refatorados para aceitar um argumento 
 | **Saída** | `tabela_domingo_ajustada.xlsx` e `tabela_domingo_ajustada.csv` (formato OS com 33 colunas) |
 | **Dependências** | `pandas`, `openpyxl`, `pyarrow`, `pathlib`, `json`, `argparse` |
 
+> Disponível na **aba 7 → modo 7.1** do app principal.
+
 ---
 
 ## 7️⃣.2️⃣ `7.2_combinador_partidas.py`
@@ -287,7 +314,9 @@ Todos os 10 scripts do repositório foram refatorados para aceitar um argumento 
 | **Entrada** | Arquivos CSV de partidas (`partidas_du.csv`, `partidas_dom.csv`) gerados pelo Script 7 |
 | **Processamento** | 1. Lê os arquivos de partidas de Dia Útil e Domingo.<br>2. Mantém apenas os serviços presentes em `partidas_dom.csv`.<br>3. Divide as partidas de Domingo em madrugada (< 06:00:00) e noite (>= 20:00:00).<br>4. Seleciona as partidas de Dia Útil na janela 06:00:00–20:00:00 (exclusivo).<br>5. Compatibiliza o campo `intervalo` nas transições (05:59→06:00 e 19:59→20:00) para manter consistência entre partidas consecutivas.<br>6. Concatena os blocos (Domingo madrugada + Dia Útil diurno + Domingo noite), ordenados por `departure_time` dentro de cada serviço/sentido. |
 | **Saída** | Arquivo CSV de partidas no formato do Script 7 (padrão: `quadros_dom_04-10.csv`) |
-| **Dependências** | `pandas` |
+| **Dependências** | `pandas`, `argparse`, `json` |
+
+> Disponível na **aba 7 → modo 7.2** do app principal. Aceita `--config` com `caminho_du`, `caminho_dom` e `caminho_saida`; sem config, mantém os mesmos defaults da execução isolada.
 
 ---
 
@@ -430,4 +459,4 @@ graph TD
 ```
 
 > [!NOTE]
-> A validação do GTFS de entrada (script **0**) foi movida para o projeto externo `C:\github_repositories\validacao`, junto com o validador pós-pipeline `validar_gtfs.py`. O script **2** é a entrada principal para todos os modais. Os scripts **5**, **5.1**, **5.2** e **5.3** são alternativas de combinação; o script **5.4** elimina duplicatas em linhas regulares (preservando EXCEP) nos GTFS combinados/públicos. Os scripts **4**, **6**, **7**, **7.1**, **7.2**, **8** e **8.1** são etapas de pós-processamento/exportação independentes: **7.1** e **7.2** combinam partidas de diferentes tipos de dia (Dia Útil × Domingo), respectivamente no formato da tabela de OS e no formato do arquivo de partidas gerado pelo script 7. Os scripts **9** e **10** formam um sub-fluxo independente para geração de GTFSs com excepcionalidades/desvios selecionados.
+> A validação do GTFS de entrada (script **0**) foi movida para o projeto externo `C:\github_repositories\validacao`, junto com o validador pós-pipeline `validar_gtfs.py`. O script **2** é a entrada principal para todos os modais. Os scripts **5**, **5.1**, **5.2** e **5.3** são alternativas de combinação; o script **5.4** elimina duplicatas em linhas regulares (preservando EXCEP) nos GTFS combinados/públicos. Os scripts **4**, **6**, **7**, **7.1**, **7.2**, **8** e **8.1** são etapas de pós-processamento/exportação independentes: **7.1** e **7.2** combinam partidas de diferentes tipos de dia (Dia Útil × Domingo), respectivamente no formato da tabela de OS e no formato do arquivo de partidas gerado pelo script 7. Os scripts **9** e **10** formam um sub-fluxo independente para geração de GTFSs com excepcionalidades/desvios selecionados. O script **11** compara duas OS entre si e também é independente do GTFS. O script **3** está descontinuado e não é exposto no app; o **11.1** é uma investigação pontual e também fica fora do app.

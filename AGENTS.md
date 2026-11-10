@@ -15,6 +15,14 @@ por aplicação Streamlit (`src/app.py`). Contém versões antigas em R (`codigo
   barra de progresso por tempo decorrido e logs em tempo real.
 - `src/tabs/tab_*.py`: uma aba por etapa (QH, ajustar ST, alternativos,
   juntar, shapes, partidas, extensões, filtrar, juntar dois).
+  A aba 1 tem modos para os scripts 1, 1.1, 1.2, 1.3, 1.3.1 e 1.4; a aba 7
+  tem modos para 7, 7.1 e 7.2.
+- `src/app_format_qh.py`: app Streamlit standalone (versão Python do Shiny
+  `1.2 app_format_qh.R`) — upload de GTFS, seleção em cascata, comparação da
+  programação colada com o GTFS, resumo por faixa e download do QH em CSV.
+  Lógica pura em `src/qh_format.py`; testes em `tests/test_qh_format.py`
+  (`python -m unittest discover -s tests -t . -v`). Execução:
+  `python -m streamlit run src/app_format_qh.py`.
 - `codigos_py/`: scripts Python do pipeline, numerados 1 a 10
   (`1_extrair_qh_especificado_no_gtfs` [faixas de frequência],
   `1.1_extrair_qh_partidas` [grade de partidas detalhadas],
@@ -25,36 +33,34 @@ por aplicação Streamlit (`src/app.py`). Contém versões antigas em R (`codigo
   por linha/sentido/faixa — aceita formato longo (Faixa+Partidas) ou wide
   (uma coluna por faixa, melt automático); headsign derivado da vista;
   exporta CSVs por quadro + Excel com uma aba por linha; default F_REG;
-  sem aba Streamlit ainda — CLI/`--config`],
+  aba 1 → modo 1.3],
   `1.3.1_conferir_partidas_geradas` [conferência independente dos quadros do 1.3
   contra a entrada — reexpande bandas, compara (servico,sentido,faixa), confere
-  Excel; relatório + exit 0/1; sem aba Streamlit],
+  Excel; relatório + exit 0/1; aba 1 → modo 1.3.1],
   `1.4_qh_pf_a_partir_do_gtfs` [quadros de ponto facultativo (`F_REG`) direto do
   `frequencies.txt` de um GTFS (default `0171_gtfs_out_26_1E_ret.zip` na raiz);
   filtra `route_type=700`, exclui agência MOBI-Rio (`20001`) inteira; base DU
   (`U_REG`) p/ Internorte/Intersul/Transcarioca/Santa Cruz e sábado (`S_REG`) p/
   GTU/TUSE; saída própria `qh_por_linha_pf_gtfs/{estudo}Q/` com CSVs + Excel +
-  gate; sem aba Streamlit],
+  gate; aba 1 → modo 1.4],
   `2_ajustar_stop_times`, `4_trajetos_alternativos`, `5_juntar_gtfs` e variantes 5.1–5.4,
   `6_gerar_shapes`, `7_lista_partidas` + 7.1 + 7.2 (tipos de dia `du`/`sab`/`dom`/`pf`
-  [ponto facultativo, `F_REG`]; `get_pattern` lança `ValueError` p/ token desconhecido),
+  [ponto facultativo, `F_REG`]; `get_pattern` lança `ValueError` p/ token desconhecido;
+  7.2 agora aceita `--config` com `caminho_du`/`caminho_dom`/`caminho_saida`; aba 7 → modos 7/7.1/7.2),
   `8_gerar_extensoes` + 8.1,
-  `9_filtrar_gtfs_por_lista`, `10_juntar_dois_gtfs`,
-  `investigar_os190_vs_gtfs0174` [investigação OS 190/191 (Eleição 2º turno) ×
-  GTFS 0174 — cruza OS×D_REG por serviço/sentido/faixa, classifica serviços e
-  gera CSVs + resumo na raiz; fórmula default `floor` (bug `floor_mais_1`
-  duplicava fronteiras de bandas contíguas — corrigido 2026-10-22); versão
-  generalizada virou `2_comparar_os_gtfs.py` no projeto irmão `validacao_gtfs`
-  (todos os tipos de dia, sem hardcode)],
-  `comparar_duas_os` [compara **duas OS** "Resumo por Dia" entre si, por
-  linha/sentido/tipo de dia/faixa — delta A−B, status IGUAL/A_MAIOR/B_MAIOR/
-  SÓ_A/SÓ_B, sem GTFS; CSVs + resumo na raiz; defaults: PO 1ºEst Nov ×
-  2ºEst Out 2026; sem aba Streamlit]).
+  `9_filtrar_gtfs_por_lista`, `10_juntar_dois_gtfs`).
+  `3_desvios_nao-utilizar.py` (descontinuado) não é exposto no app. Os scripts da
+  família 11 (`11_comparar_duas_os.py`, `11.1_investigar_os190_vs_gtfs0174.py` e
+  `11.2_comparar_dois_gtfs.py`, junto com a aba 11) foram removidos daqui e vivem
+  em `validacao_gtfs` (`2_comparar_os_gtfs.py`, `3_comparar_duas_os.py` e
+  `4_comparar_dois_gtfs.py`).
 - Projeto irmão `C:\github_repositories\validacao_gtfs` (independente, com git):
-  itens numerados `0_validar_gtfs_entrada.py` (pró-pipeline), `1_validar_gtfs.py`
-  (antes `validar_gtfs.py`, renomeado 2026-10-22) e `2_comparar_os_gtfs.py`
+  itens numerados `0_validar_gtfs_entrada.py` (pré-pipeline), `1_validar_gtfs.py`
+  (antes `validar_gtfs.py`, renomeado 2026-10-22), `2_comparar_os_gtfs.py`
   (compara conteúdo de partidas OS × GTFS para todos os tipos de dia — entradas
-  `OS.csv`/`GTFS.zip` na raiz com auto-detecção); tem `README.md`,
+  `OS.csv`/`GTFS.zip` na raiz com auto-detecção), `3_comparar_duas_os.py`
+  (compara duas OS "Resumo por Dia" entre si) e `4_comparar_dois_gtfs.py`
+  (compara dois arquivos GTFS entre si com extensão GIS); tem `README.md`,
   `CHANGELOG.md` e `memory.md` próprios.
 - `codigos_R/`: versões antigas do pipeline em R (`datados/` = obsoletos).
 - `Iniciar_App.bat`: atalho de inicialização da aplicação.

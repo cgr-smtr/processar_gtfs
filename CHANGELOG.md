@@ -4,6 +4,27 @@ Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 
 O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
+## [Não lançado] - 2026-11-10
+
+### Removido
+- Scripts `codigos_py/11_comparar_duas_os.py`, `codigos_py/11.1_investigar_os190_vs_gtfs0174.py` e `codigos_py/11.2_comparar_dois_gtfs.py`, a aba **11. Comparar OS** (`src/tabs/tab_11_comparar_os.py` e registro em `src/app.py`) e as seções correspondentes do `README.md`: os comparadores de OS e de GTFS foram transplantados e renumerados no repositório irmão `C:\github_repositories\validacao_gtfs` como **`3_comparar_duas_os.py`** e **`4_comparar_dois_gtfs.py`** (e o `11.1`, cuja versão generalizada já vivia lá como `2_comparar_os_gtfs.py`, foi removido).
+
+## [Não lançado] - 2026-11-03
+
+### Adicionado
+- Integração dos scripts ausentes ao app principal: `1.1`, `1.2`, `1.3`, `1.3.1` e `1.4` agora ficam na **aba 1** (seletor de modo); `7.1` e `7.2` na **aba 7**; e o `11_comparar_duas_os.py` ganhou a **aba 11**. `3_desvios_nao-utilizar.py` (descontinuado) e `11.1` continuam fora do app.
+- Nova aba `src/tabs/tab_11_comparar_os.py` para comparar duas OS no formato "Resumo por Dia", com campos de OS A/B, prefixo, pasta de saída, tipos de dia e encoding.
+- Novo app Streamlit standalone `src/app_format_qh.py` (versão Python do Shiny `1.2 app_format_qh.R`): upload de GTFS, seleção em cascata de linha/sentido/calendário/destino, comparação da programação prevista colada com as partidas do GTFS, resumo por faixa horária e download do QH em CSV no formato do Script 1 (`trip_id` vazio).
+- Módulo `src/qh_format.py` com a lógica pura (tempo, parsing, GTFS, bandas, comparação, resumo e cores), separado da UI para testes.
+- `tests/test_qh_format.py` (+ `tests/__init__.py`) com 17 testes de unidade cobrindo horários, meia-noite, parsing, expansão de frequências, bandas, comparação e resumo.
+- Correções em relação ao R: bandas agrupam headways consecutivos (não apenas a faixa), comparação com deduplicação e preenchimento de não pareados, e CSV com aspas mínimas quando necessário.
+
+### Alterado
+- `codigos_py/7.2_combinador_partidas.py`: passou a aceitar `--config` (`caminho_du`, `caminho_dom`, `caminho_saida`) e a execução automática foi movida para `if __name__ == "__main__"`. Sem `--config`, mantém exatamente os mesmos defaults e a mesma saída da execução isolada pelo terminal.
+- `src/app_format_qh.py` usa `width="stretch"` (Streamlit 1.60) e converte colunas `Intervalo` para texto antes de aplicar o Styler, evitando warnings de serialização Arrow.
+- Células com cor de faixa agora recebem também `color: #1F1F1F` (texto escuro), mantendo a mesma paleta de identificação das faixas e garantindo leitura no tema escuro do Streamlit.
+- Correção do campo de destino: os seletores agora usam chaves dinâmicas que incluem o hash do GTFS, a linha e o sentido, forçando o recarregamento das opções quando o recorte muda (antes o Streamlit podia manter os destinos da seleção anterior).
+
 ## [Não lançado] - 2026-10-26
 
 ### Adicionado

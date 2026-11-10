@@ -203,7 +203,8 @@ atualizada (README, CHANGELOG, AGENTS, memória).
   por linha e blocos por quadro (cabeçalho Linha/Trip headsign/Tipo dia +
   tabela Partida|Horário|Intervalo, partidas expandidas). Gate duro antes de
   gravar qualquer arquivo.
-- **Pendência:** sem aba Streamlit — execução via CLI/`--config`.
+- **Pendência resolvida em 2026-11-03:** o script passou a ter aba no app
+  principal (`aba 1 → modo 1.3`), mantendo também a execução via CLI/`--config`.
 
 ---
 
@@ -251,3 +252,108 @@ estavam conformes.
 - `CHANGELOG.md` (entrada 2026-10-22 + defaults em 2026-10-23), `AGENTS.md`
   (convenção "Extensão de linha (7, 8, 8.1)"), `.opencode/memory.md`
   (detalhamento completo) e `README.md` (seções 7, 8 e 8.1).
+
+---
+
+# CONTEXTO - Sessão de Desenvolvimento 2026-11-03
+
+## Resumo
+
+Conversão do Shiny `1.2 app_format_qh.R` para um app Streamlit standalone em
+Python, com separação entre UI e lógica pura e cobertura de testes.
+
+## O que foi criado
+
+- **`src/qh_format.py`:** lógica pura — conversão de horários/segundos,
+  normalização de meia-noite, parsing da programação, leitura do GTFS,
+  expansão de frequências, tabelas de exibição, geração de bandas de QH,
+  comparação GTFS × proposta, resumo por faixa e cores por hora.
+- **`src/app_format_qh.py`:** app Streamlit com upload de GTFS, seleção em
+  cascata de linha/sentido/calendário/destino, quatro colunas (programação,
+  GTFS, proposta e comparação), resumo por faixa e download do QH em CSV.
+- **`tests/test_qh_format.py` + `tests/__init__.py`:** 17 testes de unidade.
+
+## Decisões e correções
+
+- Nome sem o prefixo `1.2` para não colidir com
+  `codigos_py/1.2_combinar_quadros_horarios.py`.
+- Bandas de QH agrupam **headways consecutivos iguais** (não apenas por faixa);
+  a última partida herda o headway anterior; mínimo de 2 partidas.
+- Comparação replica o pareamento do R pela menor diferença, mas remove pares
+  duplicados e mantém partidas sem par ("Nova" no GTFS ou "Removida" na
+  proposta).
+- Saída QH mantém `trip_id` vazio e as 6 colunas do Script 1.
+- CSV usa `QUOTE_MINIMAL` (o R usava `quote=FALSE`); aspas só aparecem quando
+  o conteúdo exige.
+- UI ajustada ao Streamlit 1.60: `width="stretch"` e `Intervalo` convertido
+  para texto antes do Styler (evita warnings de serialização Arrow).
+- Correção do campo de destino: seletores com chaves dinâmicas (hash do GTFS
+  + linha + sentido) para forçar o recarregamento das opções ao trocar o
+  recorte; o Streamlit mantinha os destinos da seleção anterior.
+
+## Verificação
+
+- `python -m unittest discover -s tests -t . -v` → **17 testes OK**.
+- Smoke test com `streamlit.testing.v1.AppTest` + GTFS sintético: upload,
+  programação válida, 4 dataframes renderizados, sem exceções e download
+  disponível.
+- Execução manual: `python -m streamlit run src/app_format_qh.py`.
+
+## Integração dos scripts ausentes no app principal
+
+- **Aba 1** (`src/tabs/tab_1_extrair_qh.py`): seletor de modo para `1`, `1.1`,
+  `1.2`, `1.3`, `1.3.1` e `1.4`, com os mesmos campos/defaults aceitos por cada
+  script via `--config`.
+- **Aba 7** (`src/tabs/tab_7_partidas.py`): seletor de modo para `7`, `7.1` e
+  `7.2`.
+- **Aba 11** (`src/tabs/tab_11_comparar_os.py`): comparação de duas OS, com
+  `end_os_a`, `end_os_b`, prefixo, pasta de saída, tipos de dia e encoding.
+- **`7.2_combinador_partidas.py`:** ganhou leitura de `--config`
+  (`caminho_du`, `caminho_dom`, `caminho_saida`) e `main guard`; a lógica e os
+  defaults foram preservados. Teste sintético confirmou saída byte a byte igual
+  entre a execução isolada e a execução via config.
+- **Fora do app:** `3_desvios_nao-utilizar.py` (descontinuado) e `11.1`
+  (investigação pontual), conforme decisão do usuário.
+- **Verificação:** `compileall`, 17 testes unitários e smoke test `AppTest`
+  percorrendo todos os modos novos das abas 1 e 7 e a aba 11, sem exceções.
+
+---
+
+# CONTEXTO - Sessão de Desenvolvimento 2026-11-10
+
+## Resumo
+
+Criação do comparador de dois GTFS e transplante dos scripts de comparação
+(`11_comparar_duas_os.py` e `11.2_comparar_dois_gtfs.py`) para o repositório
+irmão `C:\github_repositories\validacao_gtfs`, renumerados como
+`3_comparar_duas_os.py` e `4_comparar_dois_gtfs.py`.
+
+## Decisões e Implementação
+
+- **Extração de partidas e metadados por GTFS (`4_comparar_dois_gtfs.py`, regra do Script 7):**
+  - Tipos de dia suportados: `du` (`Dia Útil`, padrão `U`), `sab` (`Sábado`,
+    padrão `S`), `dom` (`Domingo`, padrão `D`) e `pf` (`Ponto Facultativo`,
+    padrão `F`).
+  - Filtra `route_type == 200` (frescões), `service_id == EXCEP`, `DESAT` e
+    `trip_id_fantasma.txt`.
+  - Expande `frequencies.txt` em `[start_time, end_time)` com passo
+    `headway_secs` e adiciona viagens regulares (sem `frequencies`) pelo
+    primeiro ponto (`stop_sequence == '0'`) de `stop_times.txt`.
+  - Identifica linhas circulares (`trip_headsign == 'Circular'`) para atribuir
+    `Sentido = Circular` (demais: `0 → Ida`, `1 → Volta`).
+  - Calcula extensão GIS em metros (`EPSG:31983`, maior shape por itinerário
+    regular, excluindo `EXCEP` e desvios com `[`).
+- **Cruzamento A × B (padrão dos comparadores 3 e 4):**
+  - Monta a grade completa da união dos pares `(Serviço, Sentido)` × tipos de
+    dia selecionados × 14 faixas horárias padrão (`00:00-01:00` a `23:00-24:00`).
+  - Classifica cada célula em `IGUAL`, `A_MAIOR`, `B_MAIOR`, `SÓ_A` ou `SÓ_B` e
+    grava `relatorio_<prefixo>_celulas.csv`, `relatorio_<prefixo>_servicos.csv`
+    (com `Vista_A/B`, `Consórcio_A/B`, `Extensão_A/B`, `Delta_Extensão`,
+    `Celulas_Divergentes` e `Vista_Divergente`) e `resumo_<prefixo>.txt`.
+- **Migração para `C:\github_repositories\validacao_gtfs`:**
+  - `11_comparar_duas_os.py` → `3_comparar_duas_os.py`
+  - `11.2_comparar_dois_gtfs.py` → `4_comparar_dois_gtfs.py`
+  - Removidos de `processar_gtfs` os scripts `11`, `11.1_investigar_os190_vs_gtfs0174.py` e `11.2`, a aba
+    `src/tabs/tab_11_comparar_os.py` e as seções correspondentes no `README.md`.
+- **Verificação:** validados com dois GTFS sintéticos e `py_compile`/`compileall`
+  em ambos os repositórios.

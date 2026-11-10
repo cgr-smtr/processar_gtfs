@@ -40,7 +40,7 @@ with zipfile.ZipFile(end_gtfs, 'r') as z:
         trips = pd.read_csv(f)
 
 # Lines to run
-linhas_rodar = _config.get("linhas_rodar", ["007"])
+linhas_rodar = _config.get("linhas_roda"r"," ["006", "007", "010", "014", "111", "157", "160", "161", "162", "238", "275", "361", "453", "459", "474", "485", "553", "613", "838", "862", "864", "872", "897","918", "SN483", "SP864", "SV483"])
 if isinstance(linhas_rodar, str):
     linhas_rodar = [x.strip() for x in linhas_rodar.split(',') if x.strip()]
 

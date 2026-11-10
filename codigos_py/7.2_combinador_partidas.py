@@ -1,4 +1,32 @@
+import os
+import json
+import argparse
 import pandas as pd
+
+# ==============================================================================
+# LEITURA DE CONFIGURAÇÃO (Linha de Comando / Streamlit / JSON)
+# ==============================================================================
+_parser = argparse.ArgumentParser(
+    description="Combina partidas de domingo com o bloco de dia útil (06h-20h)."
+)
+_parser.add_argument('--config', type=str, default='', help='Caminho para arquivo JSON de configuração')
+_args, _ = _parser.parse_known_args()
+_config = {}
+if _args.config:
+    if os.path.isfile(_args.config):
+        with open(_args.config, 'r', encoding='utf-8') as _f:
+            _config = json.load(_f)
+    else:
+        try:
+            _config = json.loads(_args.config)
+        except Exception:
+            with open(_args.config, 'r', encoding='utf-8') as _f:
+                _config = json.load(_f)
+
+caminho_du = str(_config.get("caminho_du", "quadros_du.csv"))
+caminho_dom = str(_config.get("caminho_dom", "quadros_dom.csv"))
+caminho_saida = str(_config.get("caminho_saida", "quadros_dom_04-10.csv"))
+
 
 def parse_time_to_seconds(t_str):
     """Converte horário no formato HH:MM:SS para segundos para permitir cálculos de intervalo."""
@@ -86,4 +114,5 @@ def processar_combinador_quadros(caminho_du='quadros_du.csv', caminho_dom='quadr
     print(f"Arquivo gerado com sucesso: {caminho_saida}")
 
 # Executar o script
-processar_combinador_quadros()
+if __name__ == "__main__":
+    processar_combinador_quadros(caminho_du, caminho_dom, caminho_saida)
