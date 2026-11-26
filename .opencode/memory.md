@@ -5,6 +5,31 @@ Preferência: adicionar entradas no topo, datadas.
 
 ---
 
+## 2026-11-25 (2) — Suporte a novos calendários de GTFS unificado no script 7
+
+- Pedido: preparar o `7_lista_partidas.py` para receber e processar os novos calendários contidos no GTFS unificado.
+- Implementação:
+  - Leitura de `calendar.txt` adicionada em `7_lista_partidas.py`.
+  - Nova função `resolver_service_ids_por_tipo_dia(tipo_dia, df_trips, df_calendar)` que combina o padrão legado (`U`/`S`/`D`/`F`) com o mapeamento por dias da semana (`monday`..`friday` → `du`, `saturday` → `sab`, `sunday` → `dom`, e `F`/`PF`/`FACULT`/`FERIADO` → `pf`), excluindo `EXCEP` e `DESAT` e impedindo vazamento de `F_REG` para `du`.
+  - Calendários de verão (`_VER`, `VER_*`, `VERAO`) são isolados em tipos de dia próprios (`du_ver`, `sab_ver`, `dom_ver`, `pf_ver` — gerando `partidas_du_ver.csv`, etc.) e nunca misturados aos regulares (`du`, `sab`, `dom`, `pf`); opções também expostas em `src/tabs/tab_7_partidas.py`.
+  - Seleção da primeira parada em `stop_times.txt` ajustada para ordenar pelo `stop_sequence` numérico mínimo (suporta `0` ou `1`).
+  - Testes adicionados em `tests/test_lista_partidas.py`.
+
+---
+
+## 2026-11-25 — Criação do script `5.5_juntar_gtfs_unificado.py` (derivado do 5.1)
+
+- Pedido: criar um novo script a partir do `5.1_juntar_gtfs_sppo.py` porque o GTFS `_PROC.zip` agora já pode vir com os serviços SPPO, RIO, BRT e Executivos juntos, e não é necessário substituir os arquivos armazenados em disco (`insumos/gtfs_combi` e `insumos/gtfs_pub`).
+- Implementação:
+  - [`codigos_py/5.5_juntar_gtfs_unificado.py`](codigos_py/5.5_juntar_gtfs_unificado.py):
+    - `classificar_route_types()` preserva `route_type` `'702'` (BRT) e `'200'` (Executivos) já presentes no feed, normalizando o restante para `'700'` (ou `'200'` para `numero > 1000` e `LECD124`/`LECD125`).
+    - Mantém ajuste de `service_id`, remoção de fantasmas/`linhas_excluir`, limpeza de colunas/paradas `APAGAR`, ordenação de `shapes`, `clean_gtfs()` e aplicação de cores (`atualizar_cores_gtfs()`, que preserva cores de `702`, pinta `200` de `030478`/`FFFFFF` e aplica `gtfs_cores.csv` nos demais).
+    - Removida toda substituição de arquivos em disco (`substituir_arquivos_gtfs()`), preservando `calendar_dates.txt`, `fare_attributes.txt`, `fare_rules.txt` e `feed_info.txt` do GTFS de entrada.
+  - Modo **5.5 Processar Unificado (sem substituição)** adicionado em `src/tabs/tab_5_juntar.py`.
+  - Testes adicionados em `tests/test_juntar_gtfs_unificado.py` (26 testes passando).
+
+---
+
 ## 2026-11-17 (2) — Criação do carregador de quadros horários (CSV) no GTFS (`1.5`)
 
 - Pedido: criar app Streamlit para carregar CSVs de quadros horários (formato dos scripts 1.3/1.4) em um GTFS, realizando a operação inversa do script 1.4.

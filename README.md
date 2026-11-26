@@ -28,7 +28,7 @@ O repositório combina uma camada de orquestração visual em Streamlit com scri
 - **Apps standalone**:
   - [`src/app_format_qh.py`](src/app_format_qh.py): compara programações previstas coladas pelo usuário com o GTFS e exporta quadros de horários no formato do Script 1 (lógica pura em [`src/qh_format.py`](src/qh_format.py)).
   - [`src/app_carregar_qh.py`](src/app_carregar_qh.py): carrega CSVs de quadros de horários em um GTFS base, substituindo frequências por sentido e calendário (lógica pura em [`src/gtfs_carregar_qh.py`](src/gtfs_carregar_qh.py)).
-- **Scripts do pipeline ([`codigos_py/`](codigos_py/))**: 23 scripts numerados cobrindo quadros de horários (`1` a `1.5`), ajuste de `stop_times` por GPS (`2`), trajetos alternativos (`4`), combinação/deduplicação de GTFS (`5` a `5.4`), shapes GIS (`6`), partidas (`7` a `7.2`), extensões (`8`, `8.1`) e sub-fluxo de excepcionalidades (`9`, `10`).
+- **Scripts do pipeline ([`codigos_py/`](codigos_py/))**: 24 scripts numerados cobrindo quadros de horários (`1` a `1.5`), ajuste de `stop_times` por GPS (`2`), trajetos alternativos (`4`), combinação/deduplicação de GTFS (`5` a `5.5`), shapes GIS (`6`), partidas (`7` a `7.2`), extensões (`8`, `8.1`) e sub-fluxo de excepcionalidades (`9`, `10`).
 - **Testes automatizados ([`tests/`](tests/))**: suíte `unittest` cobrindo formatação de quadros, carga de QH no GTFS e integração CLI do script `1.5`.
 
 **Características arquiteturais relevantes:**

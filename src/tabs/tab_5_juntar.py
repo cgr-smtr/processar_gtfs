@@ -14,7 +14,8 @@ def render():
             "5.1 Juntar Único (apenas SPPO ou BRT)", 
             "5.2 Concatenar Simples", 
             "5.3 Juntar c/ Substituição",
-            "5.4 Eliminar Duplicatas GTFS"
+            "5.4 Eliminar Duplicatas GTFS",
+            "5.5 Processar Unificado (sem substituição)"
         ],
         key="t5_modo"
     )
@@ -207,4 +208,48 @@ def render():
                 "caminho_saida": caminho_saida
             }
             script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "codigos_py", "5.4_eliminar_duplicatas_gtfs.py"))
+            run_script(script_path, config)
+
+    elif "5.5" in modo:
+        st.markdown("Processa um GTFS `_PROC.zip` unificado (SPPO, RIO, BRT e Executivos juntos), preservando os `route_type` e os arquivos originais do feed sem substituir por insumos em disco.")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            endereco_gtfs = st.text_input(
+                "Endereço GTFS PROC (Entrada)",
+                value=f"{base_dados}/gtfs/{ano}/{processar}_{sufixo}_PROC.zip",
+                key="t5_endereco_gtfs_55"
+            )
+            linhas_excluir = st.text_area(
+                "Linhas a Excluir (Opcional)",
+                value="",
+                help="Lista de trip_short_name separados por vírgula",
+                key="t5_linhas_excluir_55"
+            )
+        with col2:
+            endereco_gtfs_combi = st.text_input(
+                "Endereço Saída (Combi)",
+                value=f"{base_dados}/gtfs/{ano}/gtfs_combi_{sufixo}.zip",
+                key="t5_endereco_combi_55"
+            )
+            caminho_gtfs_pub = st.text_input(
+                "Endereço Saída (Público)",
+                value=f"{base_dados}/gtfs/{ano}/gtfs_rio-de-janeiro_pub.zip",
+                key="t5_caminho_pub_55"
+            )
+
+        if st.button("▶ Executar Script 5.5", key="btn_55"):
+            linhas = [x.strip() for x in linhas_excluir.split(',') if x.strip()] if linhas_excluir else []
+            config = {
+                "BASE_DADOS": base_dados,
+                "ano_gtfs": ano,
+                "mes_gtfs": mes,
+                "estudo_gtfs": estudo,
+                "gtfs_processar": processar,
+                "endereco_gtfs": endereco_gtfs,
+                "endereco_gtfs_combi": endereco_gtfs_combi,
+                "caminho_gtfs_pub": caminho_gtfs_pub,
+                "linhas_excluir": linhas
+            }
+            script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "codigos_py", "5.5_juntar_gtfs_unificado.py"))
             run_script(script_path, config)

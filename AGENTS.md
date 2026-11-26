@@ -52,9 +52,14 @@ por aplicação Streamlit (`src/app.py`). Contém versões antigas em R (`codigo
   `1.5_carregar_qh_no_gtfs` [operação inversa do 1.4: carrega CSVs de QH no GTFS,
   substituindo frequências por sentido/calendário; suporte a clonagem de molde;
   aba 1 → modo 1.5],
-  `2_ajustar_stop_times`, `4_trajetos_alternativos`, `5_juntar_gtfs` e variantes 5.1–5.4,
+  `2_ajustar_stop_times`, `4_trajetos_alternativos`, `5_juntar_gtfs` e variantes 5.1–5.5
+  (`5.5_juntar_gtfs_unificado` processa `_PROC.zip` já com SPPO/RIO/BRT/Executivos
+  juntos, preservando `route_type` `702`/`200` e sem substituir arquivos em disco),
   `6_gerar_shapes`, `7_lista_partidas` + 7.1 + 7.2 (tipos de dia `du`/`sab`/`dom`/`pf`
-  [ponto facultativo, `F_REG`]; `get_pattern` retorna `""` p/ token desconhecido;
+  [ponto facultativo, `F_REG`] e variantes de verão `du_ver`/`sab_ver`/`dom_ver`/`pf_ver`;
+  lê `calendar.txt` para mapear novos `service_id`s de GTFS unificados além do padrão
+  `U`/`S`/`D`/`F`, excluindo `EXCEP`/`DESAT` e sem misturar verão com regulares;
+  `get_pattern` retorna `""` p/ token desconhecido;
   7.2 agora aceita `--config` com `caminho_du`/`caminho_dom`/`caminho_saida`; aba 7 → modos 7/7.1/7.2),
   `8_gerar_extensoes` + 8.1,
   `9_filtrar_gtfs_por_lista`, `10_juntar_dois_gtfs`).

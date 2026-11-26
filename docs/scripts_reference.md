@@ -363,6 +363,25 @@ Para visão macro do sistema, fluxo entre etapas, detalhes de parâmetros e sche
   - CLI: `python codigos_py/5.4_eliminar_duplicatas_gtfs.py --config config.json`
   - UI: `src/app.py` → Aba **5. Juntar GTFS** → modo **5.4 Eliminar Duplicatas GTFS**.
 
+### `5.5_juntar_gtfs_unificado.py`
+- **Arquivo:** [`codigos_py/5.5_juntar_gtfs_unificado.py`](../codigos_py/5.5_juntar_gtfs_unificado.py)
+- **Categoria:** Junção / Empacotamento
+- **Descrição:** Derivado do `5.1_juntar_gtfs_sppo.py` para processar um único GTFS `_PROC.zip` que já reúne SPPO, RIO, BRT e Executivos, sem substituir arquivos por insumos armazenados em disco.
+- **Responsabilidades:**
+  - Preservar `route_type == '702'` (BRT) e `route_type == '200'` (Executivos) já existentes no feed, normalizando as demais rotas para `'700'` (ou `'200'` quando `numero > 1000` ou `LECD124`/`LECD125`).
+  - Padronizar `service_id` (`U`/`S`/`D` → `U_REG`/`S_REG`/`D_REG`), filtrar `trip_id_fantasma.txt` e `linhas_excluir`, limpar colunas/paradas (`APAGAR`), ordenar `shapes.txt` e executar `clean_gtfs()`.
+  - Gravar `endereco_gtfs_combi` e `caminho_gtfs_pub` (removendo `EXCEP` e aplicando cores via `atualizar_cores_gtfs()`) **sem** chamar `substituir_arquivos_gtfs()`, mantendo os arquivos originais do feed (`calendar_dates.txt`, `fare_attributes.txt`, `fare_rules.txt`, `feed_info.txt`).
+- **Entradas:**
+  - ZIP GTFS unificado (`endereco_gtfs`, padrão `BASE_DADOS/gtfs/{ano}/{gtfs_processar}_{sufixo}_PROC.zip`).
+  - Parâmetros `--config`: `BASE_DADOS`, `ano_gtfs`, `mes_gtfs`, `estudo_gtfs`, `gtfs_processar`, `endereco_gtfs`, `endereco_gtfs_combi`, `caminho_gtfs_pub`, `caminho_cores`, `linhas_excluir`.
+- **Saídas:**
+  - `endereco_gtfs_combi` (padrão `BASE_DADOS/gtfs/{ano}/gtfs_combi_{sufixo}.zip`).
+  - `caminho_gtfs_pub` (padrão `BASE_DADOS/gtfs/{ano}/gtfs_rio-de-janeiro_pub.zip`).
+- **Dependências:** `pandas`, `numpy`, `zipfile`.
+- **Execução:**
+  - CLI: `python codigos_py/5.5_juntar_gtfs_unificado.py --config config.json`
+  - UI: `src/app.py` → Aba **5. Juntar GTFS** → modo **5.5 Processar Unificado (sem substituição)**.
+
 ---
 
 ## Grupo D — Etapas 6 a 8: Geração de Produtos (Shapes, Partidas e Extensões)
@@ -393,8 +412,8 @@ Para visão macro do sistema, fluxo entre etapas, detalhes de parâmetros e sche
 - **Categoria:** Extração
 - **Descrição:** Expande as frequências do GTFS em uma tabela completa de partidas individuais por tipo de dia (`du`, `sab`, `dom`, `pf`), incluindo extensão GIS e classificação em 14 faixas horárias.
 - **Responsabilidades:**
-  - Mapear tokens de `tipos_dia` (`du`, `sab`, `dom`, `pf` [ponto facultativo, `F_REG`]) via `get_pattern()`, retornando `""` (string vazia) para tokens desconhecidos.
-  - Excluir serviços listados em `linhas_excluir` e expandir `frequencies.txt` usando horários da primeira parada em `stop_times.txt` (preservando segundos herdados do ajuste por GPS da Etapa 2).
+  - Mapear tokens de `tipos_dia` (`du`, `sab`, `dom`, `pf` [ponto facultativo, `F_REG`], variantes de verão `du_ver`, `sab_ver`, `dom_ver`, `pf_ver`, ou `service_id` explícito) via `resolver_service_ids_por_tipo_dia()`, combinando o padrão legado (`U`/`S`/`D`/`F`) com os dias da semana de `calendar.txt`, excluindo `EXCEP`/`DESAT` e mantendo calendários de verão (`_VER`/`VERAO`) separados dos regulares; `get_pattern()` retorna `""` para tokens desconhecidos.
+  - Excluir serviços listados em `linhas_excluir` e expandir `frequencies.txt` usando horários da primeira parada em `stop_times.txt` (compatível com `stop_sequence` iniciando em `0` ou `1`, preservando segundos herdados do ajuste por GPS da Etapa 2).
   - Calcular a extensão GIS máxima por itinerário (`LineString` em `EPSG:31983`, `astype(int)`) excluindo trips `EXCEP` e desvios (`[` no `trip_headsign`), **sem filtrar `route_type`** para cobrir também BRT (`702`).
   - Exportar arquivos individuais por tipo de dia e arquivos consolidados em CSV e Parquet.
 - **Entradas:**

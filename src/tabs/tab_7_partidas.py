@@ -42,9 +42,9 @@ def render():
         with col2:
             tipos_dia = st.multiselect(
                 "Tipos de Dia (tipos_dia)",
-                ["du", "sab", "dom", "pf"],
-                default=["du", "sab", "dom", "pf"],
-                help="Quais dias processar (pf = ponto facultativo, service_id F_REG)",
+                ["du", "sab", "dom", "pf", "du_ver", "sab_ver", "dom_ver", "pf_ver"],
+                default=["du", "sab", "dom", "pf", "du_ver", "sab_ver", "dom_ver"],
+                help="Quais dias processar (pf = ponto facultativo F_REG; *_ver = calendários de verão separados)",
                 key="t7_tipos_dia",
             )
             linhas_excluir = st.text_area(

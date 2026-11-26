@@ -4,6 +4,19 @@ Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 
 O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
+## [Não lançado] - 2026-11-25
+
+### Adicionado
+- Novo script [`codigos_py/5.5_juntar_gtfs_unificado.py`](codigos_py/5.5_juntar_gtfs_unificado.py) e opção **5.5 Processar Unificado (sem substituição)** na aba 5 (`src/tabs/tab_5_juntar.py`):
+  - Criado a partir do `5.1_juntar_gtfs_sppo.py` para processar feeds `_PROC.zip` que já contêm SPPO, RIO, BRT e Executivos juntos.
+  - Preserva `route_type` de BRT (`702`) e Executivos (`200`), normalizando as demais rotas para `700` (ou `200` se `numero > 1000` / `LECD124` / `LECD125`).
+  - Não realiza substituição por arquivos armazenados em disco (`insumos/gtfs_combi` e `insumos/gtfs_pub`), preservando `calendar_dates.txt`, `fare_attributes.txt`, `fare_rules.txt` e `feed_info.txt` originais do feed.
+- Novos testes em [`tests/test_juntar_gtfs_unificado.py`](tests/test_juntar_gtfs_unificado.py) validando classificação/preservação de modais e ausência de substituição em disco.
+
+### Alterado
+- [`codigos_py/7_lista_partidas.py`](codigos_py/7_lista_partidas.py) e [`src/tabs/tab_7_partidas.py`](src/tabs/tab_7_partidas.py): preparados para receber e processar novos calendários de GTFS unificados via `calendar.txt` (`resolver_service_ids_por_tipo_dia()`), combinando os padrões legados (`U`/`S`/`D`/`F`) com os dias da semana definidos em `calendar.txt` (excluindo `EXCEP`/`DESAT` e evitando vazamento entre `F_REG` e `du`), separando calendários de verão (`*_ver` / `VERAO`: `du_ver`, `sab_ver`, `dom_ver`, `pf_ver`) dos regulares, além de suportar `stop_sequence` iniciando em `0` ou `1`.
+- Novos testes em [`tests/test_lista_partidas.py`](tests/test_lista_partidas.py) cobrindo resolução de calendários via `calendar.txt` e execução CLI.
+
 ## [Não lançado] - 2026-11-23
 
 ### Adicionado
