@@ -140,7 +140,7 @@ Para visão macro do sistema, fluxo entre etapas, detalhes de parâmetros e sche
   - Aceitar tabela de entrada em **formato longo** (`Faixa` + `Partidas`) ou **formato wide** (14 colunas de faixa horária, com melt automático).
   - Tolerar contagens formatadas com vírgula decimal ou casas decimais, além de traços (`traco_ausente`).
   - Derivar `trip_headsign` automaticamente a partir da coluna `vista` (`derivar_headsign()`).
-  - Regularizar headways conforme `granularidade_headway` garantindo que a reexpansão reproduza a contagem de partidas solicitada, executando gate interno de conferência.
+  - Distribuir as partidas homogeneamente até o fim da janela em até 2 sub-bandas contínuas com headways adjacentes (`calcular_bandas_faixa`), respeitando `granularidade_headway` (com redução automática de passo para `60s` ou `1s` quando o intervalo médio for menor que a granularidade) e executando gate interno de conferência.
   - Exportar CSVs individuais (com `trip_id` vazio), relatório consolidado de bandas e pasta de trabalho Excel com uma aba por linha.
 - **Entradas:**
   - Arquivo CSV ou Excel (`caminho_partidas`) com contagens de partidas por serviço/sentido/faixa.

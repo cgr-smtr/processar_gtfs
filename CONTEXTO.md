@@ -193,11 +193,14 @@ atualizada (README, CHANGELOG, AGENTS, memória).
 - **`trip_headsign`:** derivado da vista (`Origem - Destino`) — Ida → destino,
   Volta → origem, Circular → literal `Circular`. Validado contra o `trips.txt`
   do GTFS (38/38 grupos Ida/Volta).
-- **Bandas:** por faixa com n>0, `h = (dur//n // g)*g` (g=300 default); se
-  `h==0` (intervalo bruto < 300s), usa o bruto `dur//n` — a invariante é a
-  **preservação da contagem de partidas**, o que cede é a granularidade.
-  `end = start + n*h` (sem vazamento da faixa). Usuário confirmou que o
-  fallback está correto como está (sem alteração).
+- **Bandas:** por faixa com n>0, `calcular_bandas_faixa` distribui as `n`
+  partidas até o fim da janela em até 2 sub-bandas contínuas com headways
+  adjacentes (`h_low` e `h_low + passo`), evitando concentrar partidas no
+  início da faixa. O passo é `granularidade_headway` (default 300s) quando
+  `dur//n >= granularidade_headway`, reduzindo automaticamente para `60s`
+  (ou `1s` se `< 60s`) nos casos reais com intervalo `< 5 min`. A invariante
+  segue sendo a **preservação exata da contagem de partidas** sem vazamento
+  da faixa. Usuário aprovou a mudança em 2026-11-24.
 - **Saída:** CSVs por quadro idênticos ao script 1 (`trip_id` vazio, default
   `service_id=F_REG`) + **Excel** `quadros_partidas_F_REG.xlsx` com uma aba
   por linha e blocos por quadro (cabeçalho Linha/Trip headsign/Tipo dia +

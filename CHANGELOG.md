@@ -17,6 +17,14 @@ O formato é baseado no [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.
 - [`codigos_py/7_lista_partidas.py`](codigos_py/7_lista_partidas.py) e [`src/tabs/tab_7_partidas.py`](src/tabs/tab_7_partidas.py): preparados para receber e processar novos calendários de GTFS unificados via `calendar.txt` (`resolver_service_ids_por_tipo_dia()`), combinando os padrões legados (`U`/`S`/`D`/`F`) com os dias da semana definidos em `calendar.txt` (excluindo `EXCEP`/`DESAT` e evitando vazamento entre `F_REG` e `du`), separando calendários de verão (`*_ver` / `VERAO`: `du_ver`, `sab_ver`, `dom_ver`, `pf_ver`) dos regulares, além de suportar `stop_sequence` iniciando em `0` ou `1`.
 - Novos testes em [`tests/test_lista_partidas.py`](tests/test_lista_partidas.py) cobrindo resolução de calendários via `calendar.txt` e execução CLI.
 
+## [Não lançado] - 2026-11-24
+
+### Corrigido
+- `codigos_py/1.3_qh_a_partir_de_partidas.py`:
+  - Adicionada a função `calcular_bandas_faixa` para distribuir as `n` partidas de cada faixa horária até o fim da janela em até duas sub-bandas contínuas com headways adjacentes (`h_low` e `h_low + passo`), evitando que o arredondamento para baixo na granularidade (`300s`) concentre as partidas no início da faixa e deixe o restante sem atendimento.
+  - Para casos reais com intervalo médio menor que `granularidade_headway` (`< 300s`), o passo é reduzido automaticamente para `60s` (ou `1s` se `< 60s`).
+  - Atualizado o gate de validação de múltiplos da granularidade para considerar o `n` total da faixa (soma das sub-bandas).
+
 ## [Não lançado] - 2026-11-23
 
 ### Adicionado

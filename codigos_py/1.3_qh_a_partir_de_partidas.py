@@ -29,16 +29,16 @@ if _args.config:
 # Parâmetros principais
 BASE_RESULTADOS = Path(_config.get("BASE_RESULTADOS", "C:/R_SMTR/resultados"))
 
-ano_gtfs = str(_config.get("ano_gtfs", "2026"))
+ano_gtfs = str(_config.get("ano_gtfs", "2028"))
 mes_gtfs = str(_config.get("mes_gtfs", "11")).zfill(2)
 estudo_gtfs = str(_config.get("estudo_gtfs", "05"))
 
 # Caminho da tabela de contagens (formato wide: uma coluna por faixa;
 # ou formato longo: colunas Faixa, Partidas_Faixa)
-caminho_partidas = Path(_config.get("caminho_partidas", "Simulações - Página23.csv"))
+caminho_partidas = Path(_config.get("caminho_partidas", "Simulações - verão sab.csv"))
 
 # service_id dos arquivos gerados
-service_id = str(_config.get("service_id", "F_REG"))
+service_id = str(_config.get("service_id", "S_VERAO"))
 
 # Granularidade do headway (segundos): h é arredondado para baixo nesse múltiplo
 granularidade_headway = int(_config.get("granularidade_headway", 300))
@@ -135,6 +135,52 @@ def derivar_headsign(vista: str, sentido: str) -> str:
         raise ValueError(f"vista {vista!r} não tem exatamente 2 partes separadas por ' - ' (sentido {sentido})")
     origem, destino = partes[0].strip(), partes[1].strip()
     return destino if sentido == 'Ida' else origem
+
+
+def calcular_bandas_faixa(ini: int, fim: int, n: int, granularidade: int):
+    """Divide uma faixa [ini, fim) para acomodar exatamente `n` partidas de forma homogênea.
+
+    Quando a divisão exata não é múltipla da granularidade, combina duas sub-bandas
+    contínuas com headways adjacentes (h_low e h_low + passo) para preencher a faixa
+    até o fim sem concentrar as partidas no início. Para casos reais com intervalo
+    médio menor que `granularidade` (ex.: < 5 min), reduz o passo automaticamente
+    para 60s (ou 1s se < 60s).
+
+    Retorna lista de tuplas `(start, end, headway_secs, n_banda)`.
+    """
+    dur = fim - ini
+    if n <= 0 or dur <= 0:
+        return []
+    if n == 1:
+        return [(ini, fim, dur, 1)]
+
+    h0 = dur // n
+    if h0 >= granularidade:
+        passo = granularidade
+    elif h0 >= 60:
+        passo = 60
+    else:
+        passo = 1
+
+    h_low = (h0 // passo) * passo
+    if h_low < 1:
+        h_low = 1
+
+    k_high = (dur - n * h_low) // passo
+    k_high = max(0, min(n, k_high))
+    k_low = n - k_high
+    h_high = h_low + passo
+
+    resultado = []
+    cursor = ini
+    if k_low > 0:
+        fim_low = cursor + k_low * h_low
+        resultado.append((cursor, fim_low, h_low, k_low))
+        cursor = fim_low
+    if k_high > 0:
+        fim_high = cursor + k_high * h_high
+        resultado.append((cursor, fim_high, h_high, k_high))
+    return resultado
 
 
 # ==============================================================================
@@ -270,26 +316,20 @@ for (servico, sentido), grupo in grupos:
         if n == 0:
             continue
         ini, fim = FAIXAS_PADRAO[linha['faixa']]
-        dur = fim - ini
-        h0 = dur // n
-        h = (h0 // granularidade_headway) * granularidade_headway
-        if h == 0:
-            h = h0
-        start = ini
-        end = start + n * h
-        bandas.append({
-            'arquivo': nome_arquivo,
-            'servico': servico,
-            'sentido': sentido,
-            'headsign': headsign,
-            'faixa': linha['faixa'],
-            'n_partidas': n,
-            '_start': start,
-            '_end': end,
-            'start_time': seconds_to_horario(start),
-            'end_time': seconds_to_horario(end),
-            'headway_secs': h,
-        })
+        for start, end, h, n_banda in calcular_bandas_faixa(ini, fim, n, granularidade_headway):
+            bandas.append({
+                'arquivo': nome_arquivo,
+                'servico': servico,
+                'sentido': sentido,
+                'headsign': headsign,
+                'faixa': linha['faixa'],
+                'n_partidas': n_banda,
+                '_start': start,
+                '_end': end,
+                'start_time': seconds_to_horario(start),
+                'end_time': seconds_to_horario(end),
+                'headway_secs': h,
+            })
     grupos_processados += 1
 
 df_bandas = pd.DataFrame(bandas)
@@ -319,7 +359,12 @@ headways_ruins = df_bandas[(df_bandas['headway_secs'] < 1) | (df_bandas['_end'] 
 if len(headways_ruins):
     falhas.append(f"{len(headways_ruins)} bandas com headway < 1 ou end_time <= start_time")
 
-df_bandas['_h0'] = df_bandas.apply(lambda r: (FAIXAS_PADRAO[r['faixa']][1] - FAIXAS_PADRAO[r['faixa']][0]) // r['n_partidas'], axis=1)
+n_faixa_map = df_bandas.groupby(['servico', 'sentido', 'faixa'])['n_partidas'].sum()
+df_bandas['_h0'] = df_bandas.apply(
+    lambda r: (FAIXAS_PADRAO[r['faixa']][1] - FAIXAS_PADRAO[r['faixa']][0])
+    // n_faixa_map[(r['servico'], r['sentido'], r['faixa'])],
+    axis=1,
+)
 multiplos = df_bandas[(df_bandas['_h0'] >= granularidade_headway) & (df_bandas['headway_secs'] % granularidade_headway != 0)]
 if len(multiplos):
     falhas.append(f"{len(multiplos)} bandas com headway não múltiplo de {granularidade_headway}s")

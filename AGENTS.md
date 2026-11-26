@@ -38,6 +38,8 @@ por aplicação Streamlit (`src/app.py`). Contém versões antigas em R (`codigo
   `1.3_qh_a_partir_de_partidas` [QH factíveis a partir de tabela de contagens
   por linha/sentido/faixa — aceita formato longo (Faixa+Partidas) ou wide
   (uma coluna por faixa, melt automático), tolerante a contagens com vírgula/decimais;
+  distribui em até 2 sub-bandas contínuas (`calcular_bandas_faixa`, passo `granularidade_headway`
+  ou `60s`/`1s` se `< 5 min`) para cobrir a faixa até o fim;
   headsign derivado da vista; exporta CSVs por quadro + Excel com uma aba por linha;
   default F_REG; aba 1 → modo 1.3],
   `1.3.1_conferir_partidas_geradas` [conferência independente dos quadros do 1.3

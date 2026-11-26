@@ -30,6 +30,17 @@ Preferência: adicionar entradas no topo, datadas.
 
 ---
 
+## 2026-11-24 — Equalização homogênea de faixas em sub-bandas no script `1.3`
+
+- Problema reportado: quando `dur // n` não era múltiplo de `granularidade_headway` (`300s`), o truncamento concentrava todas as partidas no início da faixa (ex.: faixa `06:00-09:00` da linha 483 Ida com intervalos de `300s` encerrando muito antes das `09:00`).
+- Solução implementada em `codigos_py/1.3_qh_a_partir_de_partidas.py` (`calcular_bandas_faixa`):
+  - Divide a faixa em até 2 sub-bandas contínuas com headways adjacentes (`h_low` e `h_low + passo`) para cobrir a janela até o fim preservando `n` exato.
+  - Para casos reais com intervalo médio `< 5 min` (`dur // n < granularidade_headway`), reduz o passo automaticamente para `60s` (ou `1s` se `< 60s`).
+  - Gate de múltiplos da granularidade atualizado para usar o `n` total da faixa (`n_faixa_map`).
+- Validação: execução `1.3` + `1.3.1` em caso sintético (`7` faixas, `348` partidas, incluindo `< 5 min` e `< 1 min`) com 0 anomalias, além da suíte `unittest` (`24` testes OK).
+
+---
+
 ## 2026-11-17 (2) — Criação do carregador de quadros horários (CSV) no GTFS (`1.5`)
 
 - Pedido: criar app Streamlit para carregar CSVs de quadros horários (formato dos scripts 1.3/1.4) em um GTFS, realizando a operação inversa do script 1.4.
